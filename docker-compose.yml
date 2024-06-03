@@ -1,0 +1,46 @@
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./data/app:/app/cmd/log
+
+  postgres:
+    image: postgres:15
+    ports:
+      - "${DB_PORT}:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d ${DB_NAME} -U ${DB_USER} -h ${DB_HOST} -p ${DB_PORT}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+  migrate:
+    image: migrate/migrate
+    env_file:
+      - .env
+    command: [
+      "-path", "/migrations",
+      "-database", "postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable",
+      "up"
+    ]
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
