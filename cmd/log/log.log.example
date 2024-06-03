@@ -1,0 +1,4 @@
+{"level":"info","time":"2024-05-24 22:40:54","caller":"BACKEND/cmd/main.go:24","message":"Logger Initialized"}
+{"level":"info","time":"2024-05-24 22:40:54","caller":"BACKEND/cmd/main.go:27","message":"Config Initialized"}
+{"level":"error","time":"2024-05-25 22:44:45","caller":"backend/internal/services/requests.go:119","message":"already exists"}
+{"level":"error","time":"2024-05-26 00:00:38","caller":"backend/internal/services/requests.go:52","message":"user already in that team"}
