@@ -2,9 +2,11 @@ package main
 
 import (
 	"BACKEND/internal/delivery/docs"
+	"BACKEND/internal/delivery/routers"
 	"BACKEND/pkg/config"
 	"BACKEND/pkg/database"
 	"BACKEND/pkg/log"
+	"BACKEND/pkg/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -23,8 +25,11 @@ func main() {
 	config.InitConfig()
 	logger.Info().Msg("Config Initialized")
 
-	_ = database.GetDB()
+	db := database.GetDB()
 	logger.Info().Msg("Database Initialized")
+
+	routers.InitRouting(router, db, utils.InitJWTUtil(), utils.InitRedisSession(), logger)
+	logger.Info().Msg("Routing Initialized")
 
 	docs.SwaggerInfo.BasePath = "/"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

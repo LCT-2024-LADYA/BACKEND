@@ -1,4 +1,86 @@
+definitions:
+  dto.AuthRequest:
+    properties:
+      access_token:
+        type: string
+      email:
+        type: string
+      vk_id:
+        type: integer
+    required:
+    - access_token
+    - email
+    - vk_id
+    type: object
+  responses.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  responses.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /api/auth/refresh:
+    get:
+      consumes:
+      - application/json
+      description: Refreshes the access and refresh tokens using the provided refresh
+        token.
+      parameters:
+      - description: Refresh token
+        in: query
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return tokens
+          schema:
+            $ref: '#/definitions/responses.TokenResponse'
+        "400":
+          description: Bad query provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: Refresh tokens
+      tags:
+      - Authorization
+  /api/auth/vk:
+    post:
+      consumes:
+      - application/json
+      description: Authorize user with VK service
+      parameters:
+      - description: Authorization request body
+        in: body
+        name: auth
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return tokens
+          schema:
+            $ref: '#/definitions/responses.TokenResponse'
+        "400":
+          description: Bad body provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: VK authorization
+      tags:
+      - Authorization
 swagger: "2.0"

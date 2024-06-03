@@ -6,6 +6,11 @@ const (
 	ResponseBadPath  = "Bad path parameter provided"
 )
 
+type TokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 type MessageResponse struct {
 	Message string `json:"message"`
 }

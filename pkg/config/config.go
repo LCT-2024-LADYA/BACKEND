@@ -15,6 +15,11 @@ const (
 	DBHost         = "DB_HOST"
 	DBResponseTime = "DB_RESPONSE_TIME"
 
+	SessionHost     = "SESSION_HOST"
+	SessionPort     = "SESSION_PORT"
+	SessionPassword = "SESSION_PASSWORD"
+	SessionSaveTime = "SESSION_RESPONSE_TIME"
+
 	JWTExpirationTime = "JWT_EXPIRATION_TIME"
 	JWTSecret         = "JWT_SECRET"
 

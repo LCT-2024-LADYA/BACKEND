@@ -25,7 +25,7 @@ type JWTUtil struct {
 }
 
 func InitJWTUtil() JWT {
-	return JWTUtil{
+	return &JWTUtil{
 		expireTimeOut: time.Duration(viper.GetInt(config.JWTExpirationTime)) * time.Hour * 24,
 		secret:        viper.GetString(config.JWTSecret),
 	}
