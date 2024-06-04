@@ -1,7 +1,13 @@
 package dto
 
-type AuthRequest struct {
-	Token string `json:"access_token" validate:"required"`
-	VKID  int    `json:"vk_id" validate:"required,min=1"`
-	Email string `json:"email" validate:"required,email"`
+type UserBase struct {
+	FirstName string `json:"first_name" validate:"required,min=2,max=50"`
+	LastName  string `json:"last_name" validate:"required,min=2,max=50"`
+	Age       int    `json:"age" validate:"required,min=14,max=150"`
+	Sex       int    `json:"sex" validate:"required,oneof=1 2"`
+}
+
+type UserCreate struct {
+	UserBase
+	Auth
 }

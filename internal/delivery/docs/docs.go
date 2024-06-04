@@ -15,6 +15,133 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/auth/login/admin": {
+            "post": {
+                "description": "Authorize admin with X-API-KEY",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorization"
+                ],
+                "summary": "Admin Authorization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Admin apikey",
+                        "name": "X-API-KEY",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return tokens",
+                        "schema": {
+                            "$ref": "#/definitions/responses.TokenResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid X-API-KEY",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/auth/login/trainer": {
+            "post": {
+                "description": "Authorize trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorization"
+                ],
+                "summary": "Trainer Authorization",
+                "parameters": [
+                    {
+                        "description": "Authorization request body",
+                        "name": "auth",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Auth"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return tokens",
+                        "schema": {
+                            "$ref": "#/definitions/responses.TokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/auth/login/user": {
+            "post": {
+                "description": "Authorize user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorization"
+                ],
+                "summary": "User Authorization",
+                "parameters": [
+                    {
+                        "description": "Authorization request body",
+                        "name": "auth",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Auth"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return tokens",
+                        "schema": {
+                            "$ref": "#/definitions/responses.TokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/auth/refresh": {
             "get": {
                 "description": "Refreshes the access and refresh tokens using the provided refresh token.",
@@ -27,7 +154,7 @@ const docTemplate = `{
                 "tags": [
                     "Authorization"
                 ],
-                "summary": "Refresh tokens",
+                "summary": "Refresh Tokens",
                 "parameters": [
                     {
                         "type": "string",
@@ -56,9 +183,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/vk": {
+        "/api/auth/register/trainer": {
             "post": {
-                "description": "Authorize user with VK service",
+                "description": "Register trainer",
                 "consumes": [
                     "application/json"
                 ],
@@ -68,20 +195,76 @@ const docTemplate = `{
                 "tags": [
                     "Authorization"
                 ],
-                "summary": "VK authorization",
+                "summary": "Trainer Register",
                 "parameters": [
                     {
-                        "description": "Authorization request body",
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Register request body",
                         "name": "auth",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthRequest"
+                            "$ref": "#/definitions/dto.TrainerCreate"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
+                        "description": "Return created trainer's id",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CreatedIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/auth/register/user": {
+            "post": {
+                "description": "Register user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorization"
+                ],
+                "summary": "User Register",
+                "parameters": [
+                    {
+                        "description": "Register request body",
+                        "name": "auth",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
                         "description": "Return tokens",
                         "schema": {
                             "$ref": "#/definitions/responses.TokenResponse"
@@ -101,21 +284,123 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AuthRequest": {
+        "dto.Auth": {
             "type": "object",
             "required": [
-                "access_token",
                 "email",
-                "vk_id"
+                "password"
             ],
             "properties": {
-                "access_token": {
+                "email": {
                     "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 8
+                }
+            }
+        },
+        "dto.TrainerCreate": {
+            "type": "object",
+            "required": [
+                "age",
+                "email",
+                "experience",
+                "first_name",
+                "last_name",
+                "password",
+                "sex"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "maximum": 150,
+                    "minimum": 18
                 },
                 "email": {
                     "type": "string"
                 },
-                "vk_id": {
+                "experience": {
+                    "type": "integer",
+                    "maximum": 50,
+                    "minimum": 0
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 8
+                },
+                "quote": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "sex": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "dto.UserCreate": {
+            "type": "object",
+            "required": [
+                "age",
+                "email",
+                "first_name",
+                "last_name",
+                "password",
+                "sex"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "maximum": 150,
+                    "minimum": 14
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 8
+                },
+                "sex": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "responses.CreatedIDResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "integer"
                 }
             }

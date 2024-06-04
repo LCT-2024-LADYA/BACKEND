@@ -1,13 +1,21 @@
 package services
 
 import (
+	"BACKEND/internal/models/domain"
 	"BACKEND/internal/models/dto"
 	"BACKEND/pkg/responses"
 	"context"
 )
 
 type Users interface {
-	CreateUserIfNotExistByVK(ctx context.Context, user dto.AuthRequest) (int, error)
+	Register(ctx context.Context, user domain.UserCreate) (int, error)
+	Login(ctx context.Context, auth dto.Auth) (int, error)
+}
+
+type Trainers interface {
+	Register(ctx context.Context, trainer domain.TrainerCreate) (int, error)
+	Login(ctx context.Context, auth dto.Auth) (int, error)
+	UpdateMain(ctx context.Context, trainer domain.TrainerUpdate) error
 }
 
 type Tokens interface {

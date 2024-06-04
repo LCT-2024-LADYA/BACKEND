@@ -6,7 +6,12 @@ import (
 )
 
 type Users interface {
-	CreateVK(ctx context.Context, user domain.UserCreateVK) (int, error)
+	Create(ctx context.Context, user domain.UserCreate) (int, error)
+	GetSecure(ctx context.Context, email string) (int, string, error)
+}
 
-	CheckIfExistByVKID(ctx context.Context, VKID int) (int, error)
+type Trainers interface {
+	Create(ctx context.Context, trainer domain.TrainerCreate) (int, error)
+	GetSecure(ctx context.Context, email string) (int, string, error)
+	UpdateMain(ctx context.Context, trainer domain.TrainerUpdate) error
 }

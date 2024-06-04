@@ -23,6 +23,8 @@ const (
 	JWTExpirationTime = "JWT_EXPIRATION_TIME"
 	JWTSecret         = "JWT_SECRET"
 
+	APIKEY = "API_KEY"
+
 	EntitiesPerRequest = "ENTITIES_PER_REQUEST"
 )
 

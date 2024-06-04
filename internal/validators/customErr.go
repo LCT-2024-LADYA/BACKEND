@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-playground/validator/v10"
-	"mime/multipart"
-	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -60,12 +58,8 @@ func CustomErrorMessage(err error, obj interface{}) string {
 				message = fmt.Sprintf("Поле `%s` должно быть корректным адресом электронной почты.", jsonTag)
 			case "url":
 				message = fmt.Sprintf("Поле `%s` должно быть корректным URL.", jsonTag)
-			case "telegram":
-				message = fmt.Sprintf("Поле `%s` должно быть корректным логином Telegram.", jsonTag)
-			case "timeorder":
-				message = fmt.Sprintf("Поле `%s` является некорректным. Дата начала события должна быть меньше даты конца события.", jsonTag)
-			case "peopleorder":
-				message = fmt.Sprintf("Поле `%s` является некорректным. Количество участников `от` должно быть меньше количества участников `до`.", jsonTag)
+			case "password":
+				message = fmt.Sprintf("Поле `%s` должно содержать от 8 до 64 символов и включать заглавные и строчные буквы, цифры и специальные символы.", jsonTag)
 			default:
 				message = fmt.Sprintf("Поле `%s` является некорректным.", jsonTag)
 			}
@@ -78,30 +72,4 @@ func CustomErrorMessage(err error, obj interface{}) string {
 	}
 
 	return sb.String()
-}
-
-func ValidateFileTypeExtension(file *multipart.FileHeader) bool {
-	// Проверка на допустимый тип `Content-Type`
-	allowedTypes := map[string]bool{
-		"image/jpeg":    true,
-		"image/png":     true,
-		"image/svg+xml": true,
-	}
-	if !allowedTypes[file.Header.Get("Content-Type")] {
-		return false
-	}
-
-	extension := filepath.Ext(file.Filename)
-	// Проверка на допустимое расширение файла
-	allowedExtensions := map[string]bool{
-		".jpeg": true,
-		".jpg":  true,
-		".png":  true,
-		".svg":  true,
-	}
-	if !allowedExtensions[extension] {
-		return false
-	}
-
-	return true
 }

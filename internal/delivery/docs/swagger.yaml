@@ -1,16 +1,94 @@
 definitions:
-  dto.AuthRequest:
+  dto.Auth:
     properties:
-      access_token:
-        type: string
       email:
         type: string
-      vk_id:
+      password:
+        maxLength: 64
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.TrainerCreate:
+    properties:
+      age:
+        maximum: 150
+        minimum: 18
+        type: integer
+      email:
+        type: string
+      experience:
+        maximum: 50
+        minimum: 0
+        type: integer
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      password:
+        maxLength: 64
+        minLength: 8
+        type: string
+      quote:
+        maxLength: 100
+        type: string
+      sex:
+        enum:
+        - 1
+        - 2
         type: integer
     required:
-    - access_token
+    - age
     - email
-    - vk_id
+    - experience
+    - first_name
+    - last_name
+    - password
+    - sex
+    type: object
+  dto.UserCreate:
+    properties:
+      age:
+        maximum: 150
+        minimum: 14
+        type: integer
+      email:
+        type: string
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      password:
+        maxLength: 64
+        minLength: 8
+        type: string
+      sex:
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - age
+    - email
+    - first_name
+    - last_name
+    - password
+    - sex
+    type: object
+  responses.CreatedIDResponse:
+    properties:
+      id:
+        type: integer
     type: object
   responses.MessageResponse:
     properties:
@@ -27,6 +105,89 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/auth/login/admin:
+    post:
+      consumes:
+      - application/json
+      description: Authorize admin with X-API-KEY
+      parameters:
+      - description: Admin apikey
+        in: header
+        name: X-API-KEY
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return tokens
+          schema:
+            $ref: '#/definitions/responses.TokenResponse'
+        "401":
+          description: Invalid X-API-KEY
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: Admin Authorization
+      tags:
+      - Authorization
+  /api/auth/login/trainer:
+    post:
+      consumes:
+      - application/json
+      description: Authorize trainer
+      parameters:
+      - description: Authorization request body
+        in: body
+        name: auth
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Auth'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return tokens
+          schema:
+            $ref: '#/definitions/responses.TokenResponse'
+        "400":
+          description: Bad body provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: Trainer Authorization
+      tags:
+      - Authorization
+  /api/auth/login/user:
+    post:
+      consumes:
+      - application/json
+      description: Authorize user
+      parameters:
+      - description: Authorization request body
+        in: body
+        name: auth
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Auth'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return tokens
+          schema:
+            $ref: '#/definitions/responses.TokenResponse'
+        "400":
+          description: Bad body provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: User Authorization
+      tags:
+      - Authorization
   /api/auth/refresh:
     get:
       consumes:
@@ -52,25 +213,62 @@ paths:
             $ref: '#/definitions/responses.MessageResponse'
         "500":
           description: Internal Server Error
-      summary: Refresh tokens
+      summary: Refresh Tokens
       tags:
       - Authorization
-  /api/auth/vk:
+  /api/auth/register/trainer:
     post:
       consumes:
       - application/json
-      description: Authorize user with VK service
+      description: Register trainer
       parameters:
-      - description: Authorization request body
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Register request body
         in: body
         name: auth
         required: true
         schema:
-          $ref: '#/definitions/dto.AuthRequest'
+          $ref: '#/definitions/dto.TrainerCreate'
       produces:
       - application/json
       responses:
-        "200":
+        "201":
+          description: Return created trainer's id
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: Trainer Register
+      tags:
+      - Authorization
+  /api/auth/register/user:
+    post:
+      consumes:
+      - application/json
+      description: Register user
+      parameters:
+      - description: Register request body
+        in: body
+        name: auth
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
           description: Return tokens
           schema:
             $ref: '#/definitions/responses.TokenResponse'
@@ -80,7 +278,7 @@ paths:
             $ref: '#/definitions/responses.MessageResponse'
         "500":
           description: Internal Server Error
-      summary: VK authorization
+      summary: User Register
       tags:
       - Authorization
 swagger: "2.0"

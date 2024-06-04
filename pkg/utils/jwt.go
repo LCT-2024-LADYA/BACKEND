@@ -14,7 +14,6 @@ const (
 )
 
 type JWT interface {
-	GetExpireTime() time.Duration
 	CreateToken(id int, userType string) string
 	Authorize(tokenString string, access string) (UserClaim, bool, error)
 }
@@ -37,12 +36,7 @@ type UserClaim struct {
 	UserType string
 }
 
-func (j JWTUtil) GetExpireTime() time.Duration {
-	return j.expireTimeOut
-}
-
 func (j JWTUtil) CreateToken(id int, userType string) string {
-
 	expiredAt := time.Now().Add(j.expireTimeOut)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, UserClaim{
@@ -75,8 +69,8 @@ func (j JWTUtil) Authorize(tokenString string, access string) (UserClaim, bool, 
 	}
 
 	switch access {
-	case User:
-		return claim, claim.UserType == User, nil
+	case Admin, Trainer, User:
+		return claim, claim.UserType == access, nil
 	default:
 		panic("you are passing wrong access")
 	}

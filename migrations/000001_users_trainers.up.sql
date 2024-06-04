@@ -1,7 +1,7 @@
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    vk_id INTEGER UNIQUE NOT NULL,
     email VARCHAR UNIQUE NOT NULL,
+    password VARCHAR NOT NULL,
     first_name VARCHAR NOT NULL,
     last_name VARCHAR NOT NULL,
     age INTEGER NOT NULL,
@@ -11,13 +11,12 @@ CREATE TABLE users (
 
 CREATE TABLE trainers (
     id SERIAL PRIMARY KEY,
-    login VARCHAR UNIQUE NOT NULL,
-    password VARCHAR NOT NULL,
     email VARCHAR UNIQUE NOT NULL,
+    password VARCHAR NOT NULL,
     first_name VARCHAR NOT NULL,
     last_name VARCHAR NOT NULL,
     age INTEGER NOT NULL,
-    sex BOOLEAN NOT NULL,
+    sex INTEGER NOT NULL,
     experience INTEGER NOT NULL,
     quote VARCHAR NULL,
     url_photo VARCHAR NULL
