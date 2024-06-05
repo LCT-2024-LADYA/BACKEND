@@ -33,19 +33,23 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 
 	// Инициализация хендлеров
 	authHandler := handlers.InitAuthHandler(userService, trainerService, tokenService, validate)
+	userHandler := handlers.InitUserHandler(userService, validate)
+	trainerHandler := handlers.InitTrainerHandler(trainerService, validate)
 
 	// Инициализация middleware
-	// userMiddleware := middleWarrior.Authorization(utils.User)
-	// trainerMiddleware := middleWarrior.Authorization(utils.Trainer)
+	userMiddleware := middleWarrior.Authorization(utils.User)
+	trainerMiddleware := middleWarrior.Authorization(utils.Trainer)
 	adminMiddleware := middleWarrior.Authorization(utils.Admin)
 
 	// Группа маршрутов без middleware
 	baseGroup := engine.Group("/api")
 	initAuthRouter(baseGroup, authHandler, adminMiddleware)
+	initUserRouter(baseGroup, userHandler, userMiddleware)
+	initTrainerRouter(baseGroup, trainerHandler, trainerMiddleware, adminMiddleware)
 }
 
-func initAuthRouter(userGroup *gin.RouterGroup, authHandler *handlers.AuthHandler, adminMiddleware gin.HandlerFunc) {
-	authGroup := userGroup.Group("/auth")
+func initAuthRouter(group *gin.RouterGroup, authHandler *handlers.AuthHandler, adminMiddleware gin.HandlerFunc) {
+	authGroup := group.Group("/auth")
 
 	authGroup.POST("register/user", authHandler.RegisterUser)
 	authGroup.POST("login/user", authHandler.AuthorizeUser)
@@ -53,4 +57,30 @@ func initAuthRouter(userGroup *gin.RouterGroup, authHandler *handlers.AuthHandle
 	authGroup.POST("login/trainer", authHandler.AuthorizeTrainer)
 	authGroup.POST("login/admin", authHandler.AuthorizeAdmin)
 	authGroup.GET("refresh", authHandler.Refresh)
+}
+
+func initUserRouter(group *gin.RouterGroup, userHandler *handlers.UserHandler, userMiddleware gin.HandlerFunc) {
+	userGroup := group.Group("/user")
+
+	userGroup.GET("me", userMiddleware, userHandler.Me)
+	userGroup.GET(":user_id", userHandler.GetProfile)
+	userGroup.PUT("main", userMiddleware, userHandler.UpdateMain)
+	userGroup.PUT("photo", userMiddleware, userHandler.UpdatePhoto)
+}
+
+func initTrainerRouter(group *gin.RouterGroup, trainerHandler *handlers.TrainerHandler, trainerMiddleware gin.HandlerFunc, adminMiddleware gin.HandlerFunc) {
+	userGroup := group.Group("/trainer")
+
+	userGroup.GET("me", trainerMiddleware, trainerHandler.Me)
+	userGroup.GET(":trainer_id", trainerHandler.GetProfile)
+	userGroup.PUT("main", trainerMiddleware, trainerHandler.UpdateMain)
+	userGroup.PUT("photo", trainerMiddleware, trainerHandler.UpdatePhoto)
+	userGroup.PUT("roles", trainerMiddleware, trainerHandler.UpdateRoles)
+	userGroup.PUT("specializations", trainerMiddleware, trainerHandler.UpdateSpecializations)
+	userGroup.POST("service", trainerMiddleware, trainerHandler.CreateService)
+	userGroup.PUT("service", trainerMiddleware, trainerHandler.UpdateService)
+	userGroup.DELETE("service/:service_id", trainerMiddleware, trainerHandler.DeleteService)
+	userGroup.POST("achievement", trainerMiddleware, trainerHandler.CreateAchievement)
+	userGroup.PUT("achievement/:achievement_id/status", adminMiddleware, trainerHandler.UpdateAchievementStatus)
+	userGroup.DELETE("achievement/:achievement_id", trainerMiddleware, trainerHandler.DeleteAchievement)
 }

@@ -1,5 +1,4 @@
-ALTER TABLE trainers_achievements DROP CONSTRAINT IF EXISTS fk_trainer;
-ALTER TABLE trainers_achievements DROP CONSTRAINT IF EXISTS fk_achievement;
+ALTER TABLE achievements DROP CONSTRAINT IF EXISTS fk_trainer;
 
 ALTER TABLE trainers_specializations DROP CONSTRAINT IF EXISTS fk_trainer;
 ALTER TABLE trainers_specializations DROP CONSTRAINT IF EXISTS fk_specialization;

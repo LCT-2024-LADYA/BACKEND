@@ -1,4 +1,18 @@
 definitions:
+  dto.AchievementCreate:
+    properties:
+      name:
+        maxLength: 150
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+  dto.AchievementStatusUpdate:
+    properties:
+      status:
+        type: boolean
+    type: object
   dto.Auth:
     properties:
       email:
@@ -10,6 +24,116 @@ definitions:
     required:
     - email
     - password
+    type: object
+  dto.Base:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  dto.BasePrice:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  dto.BaseStatus:
+    properties:
+      id:
+        type: integer
+      is_confirmed:
+        type: boolean
+      name:
+        type: string
+    type: object
+  dto.ServiceCreate:
+    properties:
+      name:
+        maxLength: 150
+        minLength: 2
+        type: string
+      price:
+        maximum: 1000000
+        minimum: 0
+        type: integer
+    required:
+    - name
+    type: object
+  dto.ServiceUpdate:
+    properties:
+      id:
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 150
+        minLength: 2
+        type: string
+      price:
+        maximum: 1000000
+        minimum: 0
+        type: integer
+    required:
+    - id
+    - name
+    type: object
+  dto.Trainer:
+    properties:
+      achievements:
+        items:
+          $ref: '#/definitions/dto.BaseStatus'
+        type: array
+      age:
+        maximum: 150
+        minimum: 18
+        type: integer
+      email:
+        type: string
+      experience:
+        maximum: 50
+        minimum: 0
+        type: integer
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      id:
+        type: integer
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      photo_url:
+        type: string
+      quote:
+        maxLength: 100
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/dto.Base'
+        type: array
+      services:
+        items:
+          $ref: '#/definitions/dto.BasePrice'
+        type: array
+      sex:
+        enum:
+        - 1
+        - 2
+        type: integer
+      specializations:
+        items:
+          $ref: '#/definitions/dto.Base'
+        type: array
+    required:
+    - age
+    - experience
+    - first_name
+    - last_name
+    - sex
     type: object
   dto.TrainerCreate:
     properties:
@@ -52,6 +176,77 @@ definitions:
     - password
     - sex
     type: object
+  dto.TrainerUpdate:
+    properties:
+      age:
+        maximum: 150
+        minimum: 18
+        type: integer
+      email:
+        type: string
+      experience:
+        maximum: 50
+        minimum: 0
+        type: integer
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      id:
+        minimum: 1
+        type: integer
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      quote:
+        maxLength: 100
+        type: string
+      sex:
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - age
+    - email
+    - experience
+    - first_name
+    - id
+    - last_name
+    - sex
+    type: object
+  dto.User:
+    properties:
+      age:
+        maximum: 150
+        minimum: 14
+        type: integer
+      email:
+        type: string
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      id:
+        type: integer
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      photo_url:
+        type: string
+      sex:
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - age
+    - first_name
+    - last_name
+    - sex
+    type: object
   dto.UserCreate:
     properties:
       age:
@@ -83,6 +278,34 @@ definitions:
     - first_name
     - last_name
     - password
+    - sex
+    type: object
+  dto.UserUpdate:
+    properties:
+      age:
+        maximum: 150
+        minimum: 14
+        type: integer
+      email:
+        type: string
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      sex:
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - age
+    - email
+    - first_name
+    - last_name
     - sex
     type: object
   responses.CreatedIDResponse:
@@ -281,4 +504,550 @@ paths:
       summary: User Register
       tags:
       - Authorization
+  /api/trainer/{trainer_id}:
+    get:
+      consumes:
+      - application/json
+      description: Returned data for profile
+      parameters:
+      - description: User ID
+        in: path
+        name: trainer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return user
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: Get Profile
+      tags:
+      - Trainers
+  /api/trainer/achievement:
+    post:
+      consumes:
+      - application/json
+      description: Create a new achievement for the trainer
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Achievement data to create
+        in: body
+        name: achievement
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AchievementCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Achievement successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Trainer's Achievement
+      tags:
+      - Trainers
+  /api/trainer/achievement/{achievement_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing achievement for the trainer
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Achievement ID
+        in: path
+        name: achievement_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Achievement successfully deleted
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Delete Trainer's Achievement
+      tags:
+      - Trainers
+  /api/trainer/achievement/{achievement_id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update the status of an existing achievement for the trainer
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Achievement ID
+        in: path
+        name: achievement_id
+        required: true
+        type: integer
+      - description: Achievement status to update
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AchievementStatusUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Achievement status successfully updated
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Update Trainer's Achievement Status
+      tags:
+      - Trainers
+  /api/trainer/main:
+    put:
+      consumes:
+      - application/json
+      description: Update trainer's main info by provided data
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Trainer data to set
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TrainerUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Trainer successfully updated
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Update Trainer's Main Info
+      tags:
+      - Trainers
+  /api/trainer/me:
+    get:
+      consumes:
+      - application/json
+      description: Get me
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return trainer
+          schema:
+            $ref: '#/definitions/dto.Trainer'
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: Get Me
+      tags:
+      - Trainers
+  /api/trainer/photo:
+    put:
+      consumes:
+      - application/json
+      description: Update trainer's photo
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: New user photo with type jpeg/jpg/png/svg under 2MB
+        in: formData
+        name: photo
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Trainer successfully updated
+        "400":
+          description: Invalid photo or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Update Trainer's Photo
+      tags:
+      - Trainers
+  /api/trainer/roles:
+    put:
+      consumes:
+      - application/json
+      description: Update trainer's roles by provided data
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Role IDs to set
+        in: body
+        name: roles
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Roles successfully updated
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Update Trainer's Roles
+      tags:
+      - Trainers
+  /api/trainer/service:
+    post:
+      consumes:
+      - application/json
+      description: Create a new service for the trainer
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Service data to create
+        in: body
+        name: service
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ServiceCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Service successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Trainer's Service
+      tags:
+      - Trainers
+    put:
+      consumes:
+      - application/json
+      description: Update an existing service for the trainer
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Service data to update
+        in: body
+        name: service
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ServiceUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service successfully updated
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Update Trainer's Service
+      tags:
+      - Trainers
+  /api/trainer/service/{service_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing service for the trainer
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Service ID
+        in: path
+        name: service_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service successfully deleted
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Delete Trainer's Service
+      tags:
+      - Trainers
+  /api/trainer/specializations:
+    put:
+      consumes:
+      - application/json
+      description: Update trainer's specializations by provided data
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Specialization IDs to set
+        in: body
+        name: specializations
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Specializations successfully updated
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Update Trainer's Specializations
+      tags:
+      - Trainers
+  /api/user/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Returned data for profile
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return user
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad body provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: Get Profile
+      tags:
+      - Users
+  /api/user/main:
+    put:
+      consumes:
+      - application/json
+      description: Update user's main info by provided data
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: User data to set
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User successfully updated
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Update User's Main Info
+      tags:
+      - Users
+  /api/user/me:
+    get:
+      consumes:
+      - application/json
+      description: Get me
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return user
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal Server Error
+      summary: Get Me
+      tags:
+      - Users
+  /api/user/photo:
+    put:
+      consumes:
+      - application/json
+      description: Update user's photo
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: New user photo with type jpeg/jpg/png/svg under 2MB
+        in: formData
+        name: photo
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User successfully updated
+        "400":
+          description: Invalid photo or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Update User's Photo
+      tags:
+      - Users
 swagger: "2.0"

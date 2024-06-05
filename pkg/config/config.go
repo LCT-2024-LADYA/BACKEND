@@ -18,7 +18,7 @@ const (
 	SessionHost     = "SESSION_HOST"
 	SessionPort     = "SESSION_PORT"
 	SessionPassword = "SESSION_PASSWORD"
-	SessionSaveTime = "SESSION_RESPONSE_TIME"
+	SessionSaveTime = "SESSION_SAVE_TIME"
 
 	JWTExpirationTime = "JWT_EXPIRATION_TIME"
 	JWTSecret         = "JWT_SECRET"

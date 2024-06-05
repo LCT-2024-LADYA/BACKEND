@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 var (
@@ -42,7 +43,7 @@ func ValidateFileTypeExtension(file *multipart.FileHeader) bool {
 		return false
 	}
 
-	extension := filepath.Ext(file.Filename)
+	extension := strings.ToLower(filepath.Ext(file.Filename))
 	// Проверка на допустимое расширение файла
 	allowedExtensions := map[string]bool{
 		".jpeg": true,

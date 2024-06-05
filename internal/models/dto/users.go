@@ -11,3 +11,19 @@ type UserCreate struct {
 	UserBase
 	Auth
 }
+
+type UserUpdate struct {
+	UserBase
+	Email string `json:"email" validate:"required,email"`
+}
+
+type UserCover struct {
+	UserBase
+	ID       int     `json:"id"`
+	PhotoUrl *string `json:"photo_url"`
+}
+
+type User struct {
+	UserCover
+	Email string `json:"email"`
+}

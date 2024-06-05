@@ -1,6 +1,8 @@
 package domain
 
-import "gopkg.in/guregu/null.v3"
+import (
+	"gopkg.in/guregu/null.v3"
+)
 
 type TrainerBase struct {
 	FirstName  string
@@ -21,4 +23,19 @@ type TrainerUpdate struct {
 	TrainerBase
 	ID    int
 	Email string
+}
+
+type TrainerCover struct {
+	TrainerBase
+	ID       int
+	PhotoUrl null.String
+}
+
+type Trainer struct {
+	TrainerCover
+	Roles           []Base
+	Specializations []Base
+	Services        []BasePrice
+	Achievements    []BaseStatus
+	Email           string
 }

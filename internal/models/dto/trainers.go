@@ -16,6 +16,38 @@ type TrainerCreate struct {
 
 type TrainerUpdate struct {
 	TrainerBase
-	ID    int    `json:"id" validate:"required,min=1"`
 	Email string `json:"email" validate:"required,email"`
+}
+
+type TrainerCover struct {
+	TrainerBase
+	ID       int     `json:"id"`
+	PhotoUrl *string `json:"photo_url"`
+}
+
+type Trainer struct {
+	TrainerCover
+	Roles           []Base       `json:"roles"`
+	Specializations []Base       `json:"specializations"`
+	Services        []BasePrice  `json:"services"`
+	Achievements    []BaseStatus `json:"achievements"`
+	Email           string       `json:"email"`
+}
+
+type ServiceCreate struct {
+	Name  string `json:"name" validate:"required,min=2,max=150"`
+	Price int    `json:"price" validate:"omitempty,min=0,max=1000000"`
+}
+
+type ServiceUpdate struct {
+	ServiceCreate
+	ID int `json:"id" validate:"required,min=1"`
+}
+
+type AchievementCreate struct {
+	Name string `json:"name" validate:"required,min=2,max=150"`
+}
+
+type AchievementStatusUpdate struct {
+	Status bool `json:"status"`
 }

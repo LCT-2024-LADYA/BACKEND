@@ -6,7 +6,7 @@ CREATE TABLE users (
     last_name VARCHAR NOT NULL,
     age INTEGER NOT NULL,
     sex INTEGER NOT NULL,
-    url_photo VARCHAR NULL
+    photo_url VARCHAR NULL
 );
 
 CREATE TABLE trainers (
@@ -19,7 +19,7 @@ CREATE TABLE trainers (
     sex INTEGER NOT NULL,
     experience INTEGER NOT NULL,
     quote VARCHAR NULL,
-    url_photo VARCHAR NULL
+    photo_url VARCHAR NULL
 );
 
 CREATE TABLE roles (
@@ -34,10 +34,14 @@ CREATE TABLE specializations (
 
 CREATE TABLE achievements (
     id SERIAL PRIMARY KEY,
-    name VARCHAR UNIQUE NOT NULL
+    trainer_id INTEGER NOT NULL,
+    name VARCHAR UNIQUE NOT NULL,
+    is_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT fk_trainer FOREIGN KEY (trainer_id) REFERENCES trainers(id) ON DELETE CASCADE
 );
 
 CREATE TABLE services (
+    id SERIAL PRIMARY KEY,
     trainer_id INTEGER NOT NULL,
     name VARCHAR UNIQUE NOT NULL,
     price INTEGER UNIQUE NOT NULL,
@@ -67,12 +71,4 @@ CREATE TABLE trainers_specializations (
     PRIMARY KEY (trainer_id, specialization_id),
     CONSTRAINT fk_trainer FOREIGN KEY (trainer_id) REFERENCES trainers(id) ON DELETE CASCADE,
     CONSTRAINT fk_specialization FOREIGN KEY (specialization_id) REFERENCES specializations(id) ON DELETE CASCADE
-);
-
-CREATE TABLE trainers_achievements (
-    trainer_id INTEGER NOT NULL,
-    achievement_id INTEGER NOT NULL,
-    PRIMARY KEY (trainer_id, achievement_id),
-    CONSTRAINT fk_trainer FOREIGN KEY (trainer_id) REFERENCES trainers(id) ON DELETE CASCADE,
-    CONSTRAINT fk_achievement FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE
 );

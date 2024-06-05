@@ -270,9 +270,855 @@
                     }
                 }
             }
+        },
+        "/api/trainer/achievement": {
+            "post": {
+                "description": "Create a new achievement for the trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Create Trainer's Achievement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Achievement data to create",
+                        "name": "achievement",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AchievementCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Achievement successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CreatedIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/achievement/{achievement_id}": {
+            "delete": {
+                "description": "Delete an existing achievement for the trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Delete Trainer's Achievement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Achievement ID",
+                        "name": "achievement_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Achievement successfully deleted"
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/achievement/{achievement_id}/status": {
+            "put": {
+                "description": "Update the status of an existing achievement for the trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Update Trainer's Achievement Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Achievement ID",
+                        "name": "achievement_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Achievement status to update",
+                        "name": "status",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AchievementStatusUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Achievement status successfully updated"
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/main": {
+            "put": {
+                "description": "Update trainer's main info by provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Update Trainer's Main Info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Trainer data to set",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.TrainerUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Trainer successfully updated"
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/me": {
+            "get": {
+                "description": "Get me",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Get Me",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return trainer",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Trainer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/photo": {
+            "put": {
+                "description": "Update trainer's photo",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Update Trainer's Photo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "New user photo with type jpeg/jpg/png/svg under 2MB",
+                        "name": "photo",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Trainer successfully updated"
+                    },
+                    "400": {
+                        "description": "Invalid photo or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/roles": {
+            "put": {
+                "description": "Update trainer's roles by provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Update Trainer's Roles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Role IDs to set",
+                        "name": "roles",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Roles successfully updated"
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/service": {
+            "put": {
+                "description": "Update an existing service for the trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Update Trainer's Service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Service data to update",
+                        "name": "service",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ServiceUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service successfully updated"
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new service for the trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Create Trainer's Service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Service data to create",
+                        "name": "service",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ServiceCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Service successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CreatedIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/service/{service_id}": {
+            "delete": {
+                "description": "Delete an existing service for the trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Delete Trainer's Service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Service ID",
+                        "name": "service_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service successfully deleted"
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/specializations": {
+            "put": {
+                "description": "Update trainer's specializations by provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Update Trainer's Specializations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Specialization IDs to set",
+                        "name": "specializations",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Specializations successfully updated"
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/trainer/{trainer_id}": {
+            "get": {
+                "description": "Returned data for profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Get Profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "trainer_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return user",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/user/main": {
+            "put": {
+                "description": "Update user's main info by provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update User's Main Info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "User data to set",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User successfully updated"
+                    },
+                    "400": {
+                        "description": "Invalid body or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/user/me": {
+            "get": {
+                "description": "Get me",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get Me",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return user",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/user/photo": {
+            "put": {
+                "description": "Update user's photo",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update User's Photo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "New user photo with type jpeg/jpg/png/svg under 2MB",
+                        "name": "photo",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User successfully updated"
+                    },
+                    "400": {
+                        "description": "Invalid photo or jwt provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/user/{user_id}": {
+            "get": {
+                "description": "Returned data for profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get Profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return user",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.AchievementCreate": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "minLength": 2
+                }
+            }
+        },
+        "dto.AchievementStatusUpdate": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.Auth": {
             "type": "object",
             "required": [
@@ -287,6 +1133,162 @@
                     "type": "string",
                     "maxLength": 64,
                     "minLength": 8
+                }
+            }
+        },
+        "dto.Base": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BasePrice": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.BaseStatus": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "is_confirmed": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ServiceCreate": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "minLength": 2
+                },
+                "price": {
+                    "type": "integer",
+                    "maximum": 1000000,
+                    "minimum": 0
+                }
+            }
+        },
+        "dto.ServiceUpdate": {
+            "type": "object",
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "minLength": 2
+                },
+                "price": {
+                    "type": "integer",
+                    "maximum": 1000000,
+                    "minimum": 0
+                }
+            }
+        },
+        "dto.Trainer": {
+            "type": "object",
+            "required": [
+                "age",
+                "experience",
+                "first_name",
+                "last_name",
+                "sex"
+            ],
+            "properties": {
+                "achievements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.BaseStatus"
+                    }
+                },
+                "age": {
+                    "type": "integer",
+                    "maximum": 150,
+                    "minimum": 18
+                },
+                "email": {
+                    "type": "string"
+                },
+                "experience": {
+                    "type": "integer",
+                    "maximum": 50,
+                    "minimum": 0
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "photo_url": {
+                    "type": "string"
+                },
+                "quote": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Base"
+                    }
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.BasePrice"
+                    }
+                },
+                "sex": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                },
+                "specializations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Base"
+                    }
                 }
             }
         },
@@ -343,6 +1345,100 @@
                 }
             }
         },
+        "dto.TrainerUpdate": {
+            "type": "object",
+            "required": [
+                "age",
+                "email",
+                "experience",
+                "first_name",
+                "id",
+                "last_name",
+                "sex"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "maximum": 150,
+                    "minimum": 18
+                },
+                "email": {
+                    "type": "string"
+                },
+                "experience": {
+                    "type": "integer",
+                    "maximum": 50,
+                    "minimum": 0
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "quote": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "sex": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "dto.User": {
+            "type": "object",
+            "required": [
+                "age",
+                "first_name",
+                "last_name",
+                "sex"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "maximum": 150,
+                    "minimum": 14
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "photo_url": {
+                    "type": "string"
+                },
+                "sex": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
         "dto.UserCreate": {
             "type": "object",
             "required": [
@@ -376,6 +1472,43 @@
                     "type": "string",
                     "maxLength": 64,
                     "minLength": 8
+                },
+                "sex": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "dto.UserUpdate": {
+            "type": "object",
+            "required": [
+                "age",
+                "email",
+                "first_name",
+                "last_name",
+                "sex"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "maximum": 150,
+                    "minimum": 14
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
                 },
                 "sex": {
                     "type": "integer",

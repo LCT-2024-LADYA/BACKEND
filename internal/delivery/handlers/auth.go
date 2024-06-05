@@ -117,7 +117,7 @@ func (a AuthHandler) AuthorizeUser(c *gin.Context) {
 	id, err := a.userService.Login(ctx, user)
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.InvalidEmail):
+		case errors.Is(err, errs.InvalidEmail), errors.Is(err, errs.InvalidPassword):
 			c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: err.Error()})
 		default:
 			c.Status(http.StatusInternalServerError)
@@ -205,7 +205,7 @@ func (a AuthHandler) AuthorizeTrainer(c *gin.Context) {
 	id, err := a.trainerService.Login(ctx, trainer)
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.InvalidEmail):
+		case errors.Is(err, errs.InvalidEmail), errors.Is(err, errs.InvalidPassword):
 			c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: err.Error()})
 		default:
 			c.Status(http.StatusInternalServerError)
