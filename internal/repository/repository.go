@@ -10,6 +10,8 @@ type Base interface {
 	Create(ctx context.Context, base domain.BaseBase) (int, error)
 	Get(ctx context.Context) ([]domain.Base, error)
 	Delete(ctx context.Context, baseIDs []int) error
+
+	GetTable() string
 }
 
 type Users interface {

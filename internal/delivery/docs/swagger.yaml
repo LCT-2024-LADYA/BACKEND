@@ -32,6 +32,11 @@ definitions:
       name:
         type: string
     type: object
+  dto.BaseBase:
+    properties:
+      name:
+        type: string
+    type: object
   dto.BasePrice:
     properties:
       id:
@@ -192,9 +197,6 @@ definitions:
         maxLength: 50
         minLength: 2
         type: string
-      id:
-        minimum: 1
-        type: integer
       last_name:
         maxLength: 50
         minLength: 2
@@ -212,7 +214,6 @@ definitions:
     - email
     - experience
     - first_name
-    - id
     - last_name
     - sex
     type: object
@@ -504,6 +505,204 @@ paths:
       summary: User Register
       tags:
       - Authorization
+  /api/role:
+    delete:
+      consumes:
+      - application/json
+      description: Delete roles by provided IDs
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Role IDs to delete
+        in: body
+        name: role_ids
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Roles successfully deleted
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Delete Roles
+      tags:
+      - Roles
+    get:
+      consumes:
+      - application/json
+      description: Get roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return roles
+          schema:
+            items:
+              $ref: '#/definitions/dto.Base'
+            type: array
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Roles
+      tags:
+      - Roles
+    post:
+      consumes:
+      - application/json
+      description: Create a new role
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Role data to create
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BaseBase'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Role successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Role
+      tags:
+      - Roles
+  /api/specialization:
+    delete:
+      consumes:
+      - application/json
+      description: Delete specializations by provided IDs
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Specialization IDs to delete
+        in: body
+        name: specialization_ids
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Specializations successfully deleted
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Delete Specializations
+      tags:
+      - Specializations
+    get:
+      consumes:
+      - application/json
+      description: Get specializations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return specializations
+          schema:
+            items:
+              $ref: '#/definitions/dto.Base'
+            type: array
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Specializations
+      tags:
+      - Specializations
+    post:
+      consumes:
+      - application/json
+      description: Create a new specialization
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Specializations data to create
+        in: body
+        name: specialization
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BaseBase'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Specializations successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Invalid body or jwt provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Specialization
+      tags:
+      - Specializations
   /api/trainer/{trainer_id}:
     get:
       consumes:

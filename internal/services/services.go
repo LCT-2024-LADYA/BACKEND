@@ -9,6 +9,12 @@ import (
 	"mime/multipart"
 )
 
+type Base interface {
+	Create(ctx context.Context, base domain.BaseBase) (int, error)
+	GetByName(ctx context.Context) ([]dto.Base, error)
+	Delete(ctx context.Context, baseIDs []int) error
+}
+
 type Users interface {
 	Register(ctx context.Context, user domain.UserCreate) (int, error)
 	Login(ctx context.Context, auth dto.Auth) (int, error)

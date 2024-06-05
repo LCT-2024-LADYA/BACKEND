@@ -31,6 +31,10 @@ func InitBaseRepo(
 	}
 }
 
+func (c baseRepo) GetTable() string {
+	return c.table
+}
+
 func (c baseRepo) Create(ctx context.Context, base domain.BaseBase) (int, error) {
 	var createdID int
 
@@ -91,7 +95,7 @@ func (c baseRepo) Delete(ctx context.Context, baseIDs []int) error {
 		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
 	}
 
-	if count != 1 {
+	if int(count) != len(baseIDs) {
 		if rbErr := tx.Rollback(); rbErr != nil {
 			return customerr.ErrNormalizer(
 				customerr.ErrorPair{Message: customerr.RowsErr, Err: fmt.Errorf(customerr.CountErr, 1, count)},

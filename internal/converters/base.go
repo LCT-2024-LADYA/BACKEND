@@ -6,6 +6,8 @@ import (
 )
 
 type BaseConverter interface {
+	BaseBaseDTOToDomain(baseBase dto.BaseBase) domain.BaseBase
+
 	BaseBaseDomainToDTO(baseBase domain.BaseBase) dto.BaseBase
 	BaseDomainToDTO(base domain.Base) dto.Base
 	BasesDomainToDTO(bases []domain.Base) []dto.Base
@@ -20,6 +22,14 @@ type baseConverter struct{}
 func InitBaseConverter() BaseConverter {
 	return &baseConverter{}
 }
+
+// DTO -> Domain
+
+func (b baseConverter) BaseBaseDTOToDomain(baseBase dto.BaseBase) domain.BaseBase {
+	return domain.BaseBase{Name: baseBase.Name}
+}
+
+// Domain -> DTO
 
 func (b baseConverter) BaseBaseDomainToDTO(baseBase domain.BaseBase) dto.BaseBase {
 	return dto.BaseBase{Name: baseBase.Name}
