@@ -11,6 +11,8 @@ var (
 	ErrNoService        = errors.New("Достижения с данным id не существует")
 	ErrNoUser           = errors.New("Пользователя с данным id не существует")
 	ErrNoTrainer        = errors.New("Тренера с данным id не существует")
+	ErrNoTraining       = errors.New("Тренировки с данным id не существует")
+	ErrNoExercise       = errors.New("Упражнения с данным id не существует")
 	InvalidEmail        = errors.New("Пользователя с такой почтой не существует")
 	InvalidPassword     = errors.New("Пароль не верен")
 	ErrAlreadyExist     = errors.New("Сущность уже существует")

@@ -14,8 +14,7 @@ const (
 	ExecErr        = "execution error: %v"
 	RowsErr        = "rows error: %v"
 
-	JsonErr       = "json error: %v"
-	QueryBuildErr = "query build error: %v"
+	JsonErr = "json error: %v"
 
 	CountErr = "expected to affect %d record, got %d"
 )

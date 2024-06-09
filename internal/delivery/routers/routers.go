@@ -18,6 +18,7 @@ import (
 
 func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Middleware, jwtUtil utils.JWT, session utils.Session, logger zerolog.Logger) {
 	dbResponseTime := time.Duration(viper.GetInt(config.DBResponseTime)) * time.Second
+	entitiesPerRequest := viper.GetInt(config.EntitiesPerRequest)
 
 	validate := validator.New()
 	validate.RegisterValidation("password", validators.ValidatePassword)
@@ -27,6 +28,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	trainerRepo := repository.InitTrainerRepo(db)
 	specializationRepo := repository.InitBaseRepo(db, repository.SpecializationTable)
 	roleRepo := repository.InitBaseRepo(db, repository.RoleTable)
+	trainingRepo := repository.InitTrainingRepo(db, entitiesPerRequest)
 
 	// Инициализация сервисов
 	userService := services.InitUserService(userRepo, dbResponseTime, logger)
@@ -34,6 +36,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	tokenService := services.InitTokenService(jwtUtil, session)
 	specializationService := services.InitBaseService(specializationRepo, dbResponseTime, logger)
 	roleService := services.InitBaseService(roleRepo, dbResponseTime, logger)
+	trainingService := services.InitTrainingService(trainingRepo, dbResponseTime, logger)
 
 	// Инициализация хендлеров
 	authHandler := handlers.InitAuthHandler(userService, trainerService, tokenService, validate)
@@ -41,6 +44,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	trainerHandler := handlers.InitTrainerHandler(trainerService, validate)
 	specializationHandler := handlers.InitSpecializationHandler(specializationService, validate)
 	roleHandler := handlers.InitRoleHandler(roleService, validate)
+	trainingHandler := handlers.InitTrainingsHandler(trainingService)
 
 	// Инициализация middleware
 	userMiddleware := middleWarrior.Authorization(utils.User)
@@ -54,6 +58,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	initTrainerRouter(baseGroup, trainerHandler, trainerMiddleware, adminMiddleware)
 	initRolesRouter(baseGroup, roleHandler, adminMiddleware)
 	initSpecializationsRouter(baseGroup, specializationHandler, adminMiddleware)
+	initTrainingsRouter(baseGroup, trainingHandler, userMiddleware, adminMiddleware)
 }
 
 func initAuthRouter(group *gin.RouterGroup, authHandler *handlers.AuthHandler, adminMiddleware gin.HandlerFunc) {
@@ -107,4 +112,20 @@ func initSpecializationsRouter(group *gin.RouterGroup, specializationHandler *ha
 	specializationGroup.POST("", adminMiddleware, specializationHandler.CreateSpecialization)
 	specializationGroup.GET("", specializationHandler.GetSpecializations)
 	specializationGroup.DELETE("", adminMiddleware, specializationHandler.DeleteSpecializations)
+}
+
+func initTrainingsRouter(group *gin.RouterGroup, trainingHandler *handlers.TrainingHandler, userMiddleware gin.HandlerFunc, adminMiddleware gin.HandlerFunc) {
+	trainingGroup := group.Group("/training")
+
+	trainingGroup.POST("exercise", adminMiddleware, trainingHandler.CreateExercises)
+	trainingGroup.GET("exercise", trainingHandler.GetExercises)
+	trainingGroup.POST("base", adminMiddleware, trainingHandler.CreateTrainingBase)
+	trainingGroup.POST("", userMiddleware, trainingHandler.CreateTraining)
+	trainingGroup.PATCH(":training_id/exercise/:exercise_id/status", userMiddleware, trainingHandler.SetExerciseStatus)
+	trainingGroup.GET("", trainingHandler.GetTrainings)
+	trainingGroup.GET("user", userMiddleware, trainingHandler.GetUserTrainings)
+	trainingGroup.GET(":training_id", trainingHandler.GetTraining)
+	trainingGroup.GET("date", trainingHandler.GetTrainingsDate)
+	trainingGroup.POST("schedule", userMiddleware, trainingHandler.ScheduleTraining)
+	trainingGroup.GET("schedule", userMiddleware, trainingHandler.GetSchedule)
 }

@@ -37,3 +37,16 @@ type Trainers interface {
 	UpdateAchievementStatus(ctx context.Context, achievementID int, status bool) error
 	DeleteAchievement(ctx context.Context, trainerID, achievementID int) error
 }
+
+type Trainings interface {
+	CreateExercises(ctx context.Context, exercises []domain.ExerciseCreateBase) ([]int, error)
+	GetExercises(ctx context.Context, search string, cursor int) (domain.ExercisePagination, error)
+	CreateTrainingBases(ctx context.Context, trainings []domain.TrainingCreateBase) ([]int, error)
+	CreateTraining(ctx context.Context, training domain.TrainingCreate) (int, []int, error)
+	SetExerciseStatus(ctx context.Context, usersTrainingsID, usersExercisesID int, status bool) error
+	GetTrainingCovers(ctx context.Context, search string, userID null.Int, cursor int) (domain.TrainingCoverPagination, error)
+	GetTraining(ctx context.Context, trainingID int) (domain.Training, error)
+	GetTrainingsDate(ctx context.Context, userTrainingIDs []int) ([]domain.TrainingDate, error)
+	ScheduleTraining(ctx context.Context, training domain.ScheduleTraining) (int, []int, error)
+	GetSchedule(ctx context.Context, month, userID int) ([]domain.Schedule, error)
+}

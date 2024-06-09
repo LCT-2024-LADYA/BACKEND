@@ -55,6 +55,122 @@ definitions:
       name:
         type: string
     type: object
+  dto.Exercise:
+    properties:
+      additionalMuscle:
+        type: string
+      difficulty:
+        type: string
+      equipment:
+        type: string
+      id:
+        type: integer
+      muscle:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+      reps:
+        type: integer
+      sets:
+        type: integer
+      status:
+        type: boolean
+      type:
+        type: string
+      weight:
+        type: integer
+    type: object
+  dto.ExerciseBase:
+    properties:
+      additionalMuscle:
+        type: string
+      difficulty:
+        type: string
+      equipment:
+        type: string
+      id:
+        type: integer
+      muscle:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+    type: object
+  dto.ExerciseCreate:
+    properties:
+      id:
+        type: integer
+      reps:
+        type: integer
+      sets:
+        type: integer
+      status:
+        type: boolean
+      weight:
+        type: integer
+    type: object
+  dto.ExerciseCreateBase:
+    properties:
+      additionalMuscle:
+        type: string
+      difficulty:
+        type: string
+      equipment:
+        type: string
+      muscle:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+    type: object
+  dto.ExercisePagination:
+    properties:
+      cursor:
+        type: integer
+      objects:
+        items:
+          $ref: '#/definitions/dto.ExerciseBase'
+        type: array
+    type: object
+  dto.ExerciseStatusUpdate:
+    properties:
+      status:
+        type: boolean
+    type: object
+  dto.Schedule:
+    properties:
+      date:
+        type: string
+      user_training_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  dto.ScheduleTraining:
+    properties:
+      date:
+        type: string
+      id:
+        type: integer
+      time_end:
+        type: string
+      time_start:
+        type: string
+    type: object
   dto.ServiceCreate:
     properties:
       name:
@@ -217,6 +333,80 @@ definitions:
     - last_name
     - sex
     type: object
+  dto.Training:
+    properties:
+      description:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/dto.Exercise'
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  dto.TrainingCover:
+    properties:
+      description:
+        type: string
+      exercises:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  dto.TrainingCoverPagination:
+    properties:
+      cursor:
+        type: integer
+      objects:
+        items:
+          $ref: '#/definitions/dto.TrainingCover'
+        type: array
+    type: object
+  dto.TrainingCreate:
+    properties:
+      description:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/dto.ExerciseCreate'
+        type: array
+      name:
+        type: string
+    type: object
+  dto.TrainingCreateBase:
+    properties:
+      description:
+        type: string
+      exercises:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+    type: object
+  dto.TrainingDate:
+    properties:
+      date:
+        type: string
+      description:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/dto.Exercise'
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+      time_end:
+        type: string
+      time_start:
+        type: string
+    type: object
   dto.User:
     properties:
       age:
@@ -309,10 +499,26 @@ definitions:
     - last_name
     - sex
     type: object
+  responses.CreatedIDIDsResponse:
+    properties:
+      id:
+        type: integer
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
   responses.CreatedIDResponse:
     properties:
       id:
         type: integer
+    type: object
+  responses.CreatedIDsResponse:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
     type: object
   responses.MessageResponse:
     properties:
@@ -1123,6 +1329,402 @@ paths:
       summary: Update Trainer's Specializations
       tags:
       - Trainers
+  /api/training:
+    get:
+      consumes:
+      - application/json
+      description: Get training covers with optional search
+      parameters:
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return training covers
+          schema:
+            $ref: '#/definitions/dto.TrainingCoverPagination'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Training Covers
+      tags:
+      - Trainings
+    post:
+      consumes:
+      - application/json
+      description: Create a training for a user
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Training data to create
+        in: body
+        name: training
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TrainingCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Training successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDIDsResponse'
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Training
+      tags:
+      - Trainings
+  /api/training/{training_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a training by ID
+      parameters:
+      - description: Training ID
+        in: path
+        name: training_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return training
+          schema:
+            $ref: '#/definitions/dto.Training'
+        "400":
+          description: Invalid training ID
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "404":
+          description: No training with such ID
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Training
+      tags:
+      - Trainings
+  /api/training/{training_id}/exercise/{exercise_id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Set the status of an exercise in a training
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Training ID
+        in: path
+        name: training_id
+        required: true
+        type: integer
+      - description: Exercise ID
+        in: path
+        name: exercise_id
+        required: true
+        type: integer
+      - description: Exercise status to update
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ExerciseStatusUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Exercise status successfully updated
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Set Exercise Status
+      tags:
+      - Trainings
+  /api/training/base:
+    post:
+      consumes:
+      - application/json
+      description: Create a base training
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Training data to create
+        in: body
+        name: training
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TrainingCreateBase'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Training base successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDsResponse'
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Training Base
+      tags:
+      - Trainings
+  /api/training/date:
+    get:
+      consumes:
+      - application/json
+      description: Get trainings by user training IDs
+      parameters:
+      - collectionFormat: csv
+        description: User Training IDs
+        in: query
+        items:
+          type: integer
+        name: user_training_ids
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return trainings with dates
+          schema:
+            items:
+              $ref: '#/definitions/dto.TrainingDate'
+            type: array
+        "400":
+          description: Invalid user training IDs
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "404":
+          description: No schedule training with such ID
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Trainings Date
+      tags:
+      - Trainings
+  /api/training/exercise:
+    get:
+      consumes:
+      - application/json
+      description: Get exercises with pagination using cursor
+      parameters:
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return exercises with pagination
+          schema:
+            $ref: '#/definitions/dto.ExercisePagination'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Exercises with Pagination
+      tags:
+      - Trainings
+    post:
+      consumes:
+      - application/json
+      description: Create multiple exercises
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Exercises data to create
+        in: body
+        name: exercises
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/dto.ExerciseCreateBase'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Exercises successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDsResponse'
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Exercises
+      tags:
+      - Trainings
+  /api/training/schedule:
+    get:
+      consumes:
+      - application/json
+      description: Get schedule for the specified month
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Month (1-12)
+        in: query
+        name: month
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return schedule for the month
+          schema:
+            items:
+              $ref: '#/definitions/dto.Schedule'
+            type: array
+        "400":
+          description: Bad month or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Schedule
+      tags:
+      - Trainings
+    post:
+      consumes:
+      - application/json
+      description: Schedule training
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Scheduled training data to create
+        in: body
+        name: training
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ScheduleTraining'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Scheduled training successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Schedule Training
+      tags:
+      - Trainings
+  /api/training/user:
+    get:
+      consumes:
+      - application/json
+      description: Get user training covers with optional search and user ID filter
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return training covers
+          schema:
+            $ref: '#/definitions/dto.TrainingCoverPagination'
+        "400":
+          description: Bad query or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get User Training Covers
+      tags:
+      - Trainings
   /api/user/{user_id}:
     get:
       consumes:

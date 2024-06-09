@@ -6,6 +6,7 @@ import (
 	"BACKEND/pkg/responses"
 	"context"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/guregu/null.v3"
 	"mime/multipart"
 )
 
@@ -42,4 +43,17 @@ type Trainers interface {
 type Tokens interface {
 	Create(ctx context.Context, userID int, userType string) (responses.TokenResponse, error)
 	Refresh(ctx context.Context, refreshToken string) (responses.TokenResponse, error)
+}
+
+type Trainings interface {
+	CreateExercises(ctx context.Context, exercises []domain.ExerciseCreateBase) ([]int, error)
+	GetExercises(ctx context.Context, search string, cursor int) (dto.ExercisePagination, error)
+	CreateTrainingBases(ctx context.Context, trainings []domain.TrainingCreateBase) ([]int, error)
+	CreateTraining(ctx context.Context, training domain.TrainingCreate) (int, []int, error)
+	SetExerciseStatus(ctx context.Context, usersTrainingsID, usersExercisesID int, status bool) error
+	GetTrainingCovers(ctx context.Context, search string, userID null.Int, cursor int) (dto.TrainingCoverPagination, error)
+	GetTraining(ctx context.Context, trainingID int) (dto.Training, error)
+	GetTrainingsDate(ctx context.Context, userTrainingIDs []int) ([]dto.TrainingDate, error)
+	ScheduleTraining(ctx context.Context, training domain.ScheduleTraining) (int, []int, error)
+	GetSchedule(ctx context.Context, month, userID int) ([]dto.Schedule, error)
 }

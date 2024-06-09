@@ -16,8 +16,11 @@ const (
 )
 
 const (
-	User    = "user"
-	Trainer = "trainer"
+	User     = "user"
+	Trainer  = "trainer"
+	Exercise = "exercise"
+	Training = "training"
+	Schedule = "schedule"
 )
 
 func Normalizer(mainEvent string, args ...any) string {

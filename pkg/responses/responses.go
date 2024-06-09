@@ -22,3 +22,8 @@ type CreatedIDResponse struct {
 type CreatedIDsResponse struct {
 	IDs []int `json:"ids"`
 }
+
+type CreatedIDIDsResponse struct {
+	CreatedIDResponse
+	CreatedIDsResponse
+}
