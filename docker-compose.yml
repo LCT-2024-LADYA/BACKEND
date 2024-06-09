@@ -16,6 +16,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./data/app:/app/cmd/log
+      - ./data/app/static:/app/static
 
   postgres:
     image: postgres:15
@@ -52,8 +53,11 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=${SESSION_PASSWORD}
+    command: ["redis-server", "--requirepass", "${SESSION_PASSWORD}"]
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "-a", "${SESSION_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5

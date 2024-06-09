@@ -62,7 +62,7 @@ func (a AuthHandler) RegisterUser(c *gin.Context) {
 	}
 
 	if err := a.validate.Struct(user); err != nil {
-		customErr := validators.CustomErrorMessage(err, &dto.Auth{})
+		customErr := validators.CustomErrorMessage(err, &dto.UserCreate{})
 		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: customErr})
 		return
 	}
@@ -155,7 +155,7 @@ func (a AuthHandler) RegisterTrainer(c *gin.Context) {
 	}
 
 	if err := a.validate.Struct(trainer); err != nil {
-		customErr := validators.CustomErrorMessage(err, &dto.Auth{})
+		customErr := validators.CustomErrorMessage(err, &dto.TrainerCreate{})
 		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: customErr})
 		return
 	}
