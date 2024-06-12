@@ -23,6 +23,11 @@ type UserCover struct {
 	PhotoUrl *string `json:"photo_url"`
 }
 
+type UserCoverPagination struct {
+	Users  []UserCover `json:"objects"`
+	Cursor int         `json:"cursor"`
+}
+
 type User struct {
 	UserCover
 	Email string `json:"email"`

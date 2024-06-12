@@ -98,6 +98,39 @@ func (u UserHandler) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+// GetCovers
+// @Summary Get User Covers
+// @Description Get user covers with pagination
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param search query string false "Search term"
+// @Param cursor query int false "Cursor for pagination"
+// @Success 200 {object} dto.UserCoverPagination "List of user covers with pagination"
+// @Failure 400 {object} responses.MessageResponse "Invalid query parameters"
+// @Failure 500 "Internal server error"
+// @Router /api/user [get]
+func (u UserHandler) GetCovers(c *gin.Context) {
+	search := c.Query("search")
+	cursorStr := c.Query("cursor")
+	if cursorStr == "" {
+		cursorStr = "0"
+	}
+	cursor, err := strconv.Atoi(cursorStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadQuery})
+		return
+	}
+
+	userCovers, err := u.service.GetCovers(c.Request.Context(), search, cursor)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, userCovers)
+}
+
 // UpdateMain
 // @Summary Update User's Main Info
 // @Description Update user's main info by provided data

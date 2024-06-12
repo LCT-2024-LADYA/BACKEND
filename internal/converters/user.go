@@ -12,6 +12,8 @@ type UserConverter interface {
 
 	UserBaseDomainToDTO(user domain.UserBase) dto.UserBase
 	UserCoverDomainToDTO(user domain.UserCover) dto.UserCover
+	UserCoversDomainToDTO(users []domain.UserCover) []dto.UserCover
+	UserCoverPaginationDomainToDTO(user domain.UserCoverPagination) dto.UserCoverPagination
 	UserDomainToDTO(user domain.User) dto.User
 }
 
@@ -64,6 +66,23 @@ func (u userConverter) UserCoverDomainToDTO(user domain.UserCover) dto.UserCover
 		UserBase: u.UserBaseDomainToDTO(user.UserBase),
 		ID:       user.ID,
 		PhotoUrl: getStringPointer(user.PhotoUrl),
+	}
+}
+
+func (u userConverter) UserCoversDomainToDTO(users []domain.UserCover) []dto.UserCover {
+	result := make([]dto.UserCover, len(users))
+
+	for i, user := range users {
+		result[i] = u.UserCoverDomainToDTO(user)
+	}
+
+	return result
+}
+
+func (u userConverter) UserCoverPaginationDomainToDTO(user domain.UserCoverPagination) dto.UserCoverPagination {
+	return dto.UserCoverPagination{
+		Users:  u.UserCoversDomainToDTO(user.Users),
+		Cursor: user.Cursor,
 	}
 }
 

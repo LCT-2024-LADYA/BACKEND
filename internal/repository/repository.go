@@ -19,6 +19,7 @@ type Base interface {
 type Users interface {
 	Create(ctx context.Context, user domain.UserCreate) (int, error)
 	GetByID(ctx context.Context, userID int) (domain.User, error)
+	GetCovers(ctx context.Context, search string, cursor int) (domain.UserCoverPagination, error)
 	GetSecure(ctx context.Context, email string) (int, string, error)
 	UpdateMain(ctx context.Context, user domain.UserUpdate) error
 	UpdatePhotoUrl(ctx context.Context, userID int, newPhotoUrl null.String) error
@@ -27,6 +28,7 @@ type Users interface {
 type Trainers interface {
 	Create(ctx context.Context, trainer domain.TrainerCreate) (int, error)
 	GetByID(ctx context.Context, trainerID int) (domain.Trainer, error)
+	GetCovers(ctx context.Context, filters domain.FiltersTrainerCovers) (domain.TrainerCoverPagination, error)
 	GetSecure(ctx context.Context, email string) (int, string, error)
 	UpdateMain(ctx context.Context, trainer domain.TrainerUpdate) error
 	UpdatePhotoUrl(ctx context.Context, trainerID int, newPhotoUrl null.String) error

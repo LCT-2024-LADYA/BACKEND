@@ -50,7 +50,7 @@ func (s *ServiceHandler) GetServiceByID(c *gin.Context) {
 			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, responses.MessageResponse{Message: err.Error()})
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 

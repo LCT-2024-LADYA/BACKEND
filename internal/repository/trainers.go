@@ -17,14 +17,17 @@ import (
 )
 
 type trainerRepo struct {
-	db *sqlx.DB
+	db                 *sqlx.DB
+	entitiesPerRequest int
 }
 
 func InitTrainerRepo(
 	db *sqlx.DB,
+	entitiesPerRequest int,
 ) Trainers {
 	return &trainerRepo{
-		db,
+		db:                 db,
+		entitiesPerRequest: entitiesPerRequest,
 	}
 }
 
@@ -72,19 +75,20 @@ func (t trainerRepo) GetByID(ctx context.Context, trainerID int) (domain.Trainer
 		roles, specializations, services, achievements []byte
 	)
 
-	selectQuery := `SELECT email, first_name, last_name, age, sex, experience, quote, photo_url,
-					jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
-					jsonb_agg(DISTINCT jsonb_build_object('id', s.id, 'name', s.name)) FILTER (WHERE s.id IS NOT NULL AND s.name IS NOT NULL) AS specializations,
-					jsonb_agg(DISTINCT jsonb_build_object('id', serv.id, 'name', serv.name, 'price', serv.price)) FILTER (WHERE serv.id IS NOT NULL AND serv.name IS NOT NULL) AS services,
-					jsonb_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name, 'is_confirmed', a.is_confirmed)) FILTER (WHERE a.id IS NOT NULL AND a.name IS NOT NULL) AS achievements
-					FROM trainers t
-					LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
-					LEFT JOIN roles r ON tr.role_id = r.id
-					LEFT JOIN trainers_specializations ts ON t.id = ts.trainer_id
-					LEFT JOIN specializations s ON ts.specialization_id = s.id
-					LEFT JOIN services serv ON t.id = serv.trainer_id
-					LEFT JOIN achievements a ON t.id = a.trainer_id
-					WHERE t.id = $1 GROUP BY t.id`
+	selectQuery := `
+	SELECT email, first_name, last_name, age, sex, experience, quote, photo_url,
+		jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
+		jsonb_agg(DISTINCT jsonb_build_object('id', s.id, 'name', s.name)) FILTER (WHERE s.id IS NOT NULL AND s.name IS NOT NULL) AS specializations,
+		jsonb_agg(DISTINCT jsonb_build_object('id', serv.id, 'name', serv.name, 'price', serv.price)) FILTER (WHERE serv.id IS NOT NULL AND serv.name IS NOT NULL) AS services,
+		jsonb_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name, 'is_confirmed', a.is_confirmed)) FILTER (WHERE a.id IS NOT NULL AND a.name IS NOT NULL) AS achievements
+	FROM trainers t
+		LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
+		LEFT JOIN roles r ON tr.role_id = r.id
+		LEFT JOIN trainers_specializations ts ON t.id = ts.trainer_id
+		LEFT JOIN specializations s ON ts.specialization_id = s.id
+		LEFT JOIN services serv ON t.id = serv.trainer_id
+		LEFT JOIN achievements a ON t.id = a.trainer_id
+	WHERE t.id = $1 GROUP BY t.id`
 
 	err := t.db.QueryRowxContext(ctx, selectQuery, trainerID).Scan(&trainer.Email, &trainer.FirstName, &trainer.LastName,
 		&trainer.Age, &trainer.Sex, &trainer.Experience, &trainer.Quote, &trainer.PhotoUrl, &roles, &specializations, &services, &achievements)
@@ -119,6 +123,72 @@ func (t trainerRepo) GetByID(ctx context.Context, trainerID int) (domain.Trainer
 	}
 
 	return trainer, nil
+}
+
+func (t trainerRepo) GetCovers(ctx context.Context, filters domain.FiltersTrainerCovers) (domain.TrainerCoverPagination, error) {
+	selectQuery := `
+	SELECT t.id, t.first_name, t.last_name, t.age, t.sex, t.experience, t.quote, t.photo_url,
+		jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
+		jsonb_agg(DISTINCT jsonb_build_object('id', s.id, 'name', s.name)) FILTER (WHERE s.id IS NOT NULL AND s.name IS NOT NULL) AS specializations
+	FROM trainers t
+	LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
+	LEFT JOIN roles r ON tr.role_id = r.id
+	LEFT JOIN trainers_specializations ts ON t.id = ts.trainer_id
+	LEFT JOIN specializations s ON ts.specialization_id = s.id
+	WHERE t.id IN (
+		SELECT t.id
+		FROM trainers t
+			LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
+			LEFT JOIN trainers_specializations ts ON t.id = ts.trainer_id
+		WHERE t.id >= $1
+			AND ($2::text IS NULL OR t.first_name LIKE '%' || $2 || '%' OR t.last_name LIKE '%' || $2 || '%')
+			AND ($3::int[] IS NULL OR tr.role_id = ANY($3))
+			AND ($4::int[] IS NULL OR ts.specialization_id = ANY($4))
+		ORDER BY t.id)
+	GROUP BY t.id
+	ORDER BY t.id
+	LIMIT $5`
+
+	var trainers []domain.TrainerCover
+	rows, err := t.db.QueryContext(ctx, selectQuery, filters.Cursor, filters.Search, pq.Array(filters.RoleIDs), pq.Array(filters.SpecializationIDs), t.entitiesPerRequest+1)
+	if err != nil {
+		return domain.TrainerCoverPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var trainer domain.TrainerCover
+		var roles, specializations []byte
+
+		err := rows.Scan(&trainer.ID, &trainer.FirstName, &trainer.LastName, &trainer.Age, &trainer.Sex, &trainer.Experience, &trainer.Quote, &trainer.PhotoUrl, &roles, &specializations)
+		if err != nil {
+			return domain.TrainerCoverPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+		}
+
+		if len(roles) > 0 {
+			if err := json.Unmarshal(roles, &trainer.Roles); err != nil {
+				return domain.TrainerCoverPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.JsonErr, Err: err})
+			}
+		}
+		if len(specializations) > 0 {
+			if err := json.Unmarshal(specializations, &trainer.Specializations); err != nil {
+				return domain.TrainerCoverPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.JsonErr, Err: err})
+			}
+		}
+
+		trainers = append(trainers, trainer)
+	}
+
+	var nextCursor int
+	if len(trainers) == t.entitiesPerRequest+1 {
+		nextCursor = trainers[t.entitiesPerRequest].ID
+		trainers = trainers[:t.entitiesPerRequest]
+	}
+
+	return domain.TrainerCoverPagination{
+		Trainers: trainers,
+		Cursor:   nextCursor,
+	}, nil
 }
 
 func (t trainerRepo) UpdateMain(ctx context.Context, trainer domain.TrainerUpdate) error {

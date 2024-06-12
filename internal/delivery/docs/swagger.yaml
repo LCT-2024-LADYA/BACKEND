@@ -297,6 +297,60 @@ definitions:
     - last_name
     - sex
     type: object
+  dto.TrainerCover:
+    properties:
+      age:
+        maximum: 150
+        minimum: 18
+        type: integer
+      experience:
+        maximum: 50
+        minimum: 0
+        type: integer
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      id:
+        type: integer
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      photo_url:
+        type: string
+      quote:
+        maxLength: 100
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/dto.Base'
+        type: array
+      sex:
+        enum:
+        - 1
+        - 2
+        type: integer
+      specializations:
+        items:
+          $ref: '#/definitions/dto.Base'
+        type: array
+    required:
+    - age
+    - experience
+    - first_name
+    - last_name
+    - sex
+    type: object
+  dto.TrainerCoverPagination:
+    properties:
+      cursor:
+        type: integer
+      objects:
+        items:
+          $ref: '#/definitions/dto.TrainerCover'
+        type: array
+    type: object
   dto.TrainerCreate:
     properties:
       age:
@@ -478,6 +532,44 @@ definitions:
     - first_name
     - last_name
     - sex
+    type: object
+  dto.UserCover:
+    properties:
+      age:
+        maximum: 150
+        minimum: 14
+        type: integer
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      id:
+        type: integer
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      photo_url:
+        type: string
+      sex:
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - age
+    - first_name
+    - last_name
+    - sex
+    type: object
+  dto.UserCoverPagination:
+    properties:
+      cursor:
+        type: integer
+      objects:
+        items:
+          $ref: '#/definitions/dto.UserCover'
+        type: array
     type: object
   dto.UserCreate:
     properties:
@@ -1127,6 +1219,50 @@ paths:
       summary: Create Specialization
       tags:
       - Specializations
+  /api/trainer:
+    get:
+      consumes:
+      - application/json
+      description: Get trainer covers with pagination
+      parameters:
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: integer
+      - collectionFormat: csv
+        description: Role IDs
+        in: query
+        items:
+          type: integer
+        name: role_ids
+        type: array
+      - collectionFormat: csv
+        description: Specialization IDs
+        in: query
+        items:
+          type: integer
+        name: specialization_ids
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of trainer covers with pagination
+          schema:
+            $ref: '#/definitions/dto.TrainerCoverPagination'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Trainer Covers
+      tags:
+      - Trainers
   /api/trainer/{trainer_id}:
     get:
       consumes:
@@ -1943,6 +2079,36 @@ paths:
       summary: Get User Training Covers
       tags:
       - Trainings
+  /api/user:
+    get:
+      consumes:
+      - application/json
+      description: Get user covers with pagination
+      parameters:
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user covers with pagination
+          schema:
+            $ref: '#/definitions/dto.UserCoverPagination'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get User Covers
+      tags:
+      - Users
   /api/user/{user_id}:
     get:
       consumes:

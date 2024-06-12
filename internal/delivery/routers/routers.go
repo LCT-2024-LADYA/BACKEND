@@ -25,8 +25,8 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	validate.RegisterValidation("password", validators.ValidatePassword)
 
 	// Инициализация репозиториев
-	userRepo := repository.InitUserRepo(db)
-	trainerRepo := repository.InitTrainerRepo(db)
+	userRepo := repository.InitUserRepo(db, entitiesPerRequest)
+	trainerRepo := repository.InitTrainerRepo(db, entitiesPerRequest)
 	specializationRepo := repository.InitBaseRepo(db, repository.SpecializationTable)
 	roleRepo := repository.InitBaseRepo(db, repository.RoleTable)
 	trainingRepo := repository.InitTrainingRepo(db, entitiesPerRequest)
@@ -89,6 +89,7 @@ func initUserRouter(group *gin.RouterGroup, userHandler *handlers.UserHandler, u
 
 	userGroup.GET("me", userMiddleware, userHandler.Me)
 	userGroup.GET(":user_id", userHandler.GetProfile)
+	userGroup.GET("", userHandler.GetCovers)
 	userGroup.PUT("main", userMiddleware, userHandler.UpdateMain)
 	userGroup.PUT("photo", userMiddleware, userHandler.UpdatePhoto)
 }
@@ -98,6 +99,7 @@ func initTrainerRouter(group *gin.RouterGroup, trainerHandler *handlers.TrainerH
 
 	userGroup.GET("me", trainerMiddleware, trainerHandler.Me)
 	userGroup.GET(":trainer_id", trainerHandler.GetProfile)
+	userGroup.GET("", trainerHandler.GetCovers)
 	userGroup.PUT("main", trainerMiddleware, trainerHandler.UpdateMain)
 	userGroup.PUT("photo", trainerMiddleware, trainerHandler.UpdatePhoto)
 	userGroup.PUT("roles", trainerMiddleware, trainerHandler.UpdateRoles)

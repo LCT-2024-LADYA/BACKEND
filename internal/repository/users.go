@@ -15,14 +15,17 @@ import (
 )
 
 type userRepo struct {
-	db *sqlx.DB
+	db                 *sqlx.DB
+	entitiesPerRequest int
 }
 
 func InitUserRepo(
 	db *sqlx.DB,
+	entitiesPerRequest int,
 ) Users {
 	return &userRepo{
-		db,
+		db:                 db,
+		entitiesPerRequest: entitiesPerRequest,
 	}
 }
 
@@ -63,6 +66,31 @@ func (u userRepo) GetByID(ctx context.Context, userID int) (domain.User, error) 
 	user.ID = userID
 
 	return user, nil
+}
+
+func (u userRepo) GetCovers(ctx context.Context, search string, cursor int) (domain.UserCoverPagination, error) {
+	selectQuery := `
+	SELECT id, first_name, last_name, age, sex, photo_url
+	FROM users WHERE id >= $1 AND (first_name LIKE '%' || $2 || '%' OR last_name LIKE '%' || $2 || '%')
+	ORDER BY id
+	LIMIT $3`
+
+	var users []domain.UserCover
+	err := u.db.SelectContext(ctx, &users, selectQuery, cursor, search, u.entitiesPerRequest+1)
+	if err != nil {
+		return domain.UserCoverPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+	}
+
+	var nextCursor int
+	if len(users) == u.entitiesPerRequest+1 {
+		nextCursor = users[u.entitiesPerRequest].ID
+		users = users[:u.entitiesPerRequest]
+	}
+
+	return domain.UserCoverPagination{
+		Users:  users,
+		Cursor: nextCursor,
+	}, nil
 }
 
 func (u userRepo) GetSecure(ctx context.Context, email string) (int, string, error) {

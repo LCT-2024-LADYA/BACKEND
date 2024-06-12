@@ -21,17 +21,22 @@ type TrainerUpdate struct {
 
 type TrainerCover struct {
 	TrainerBase
-	ID       int     `json:"id"`
-	PhotoUrl *string `json:"photo_url"`
+	Roles           []Base  `json:"roles"`
+	Specializations []Base  `json:"specializations"`
+	ID              int     `json:"id"`
+	PhotoUrl        *string `json:"photo_url"`
+}
+
+type TrainerCoverPagination struct {
+	Trainers []TrainerCover `json:"objects"`
+	Cursor   int            `json:"cursor"`
 }
 
 type Trainer struct {
 	TrainerCover
-	Roles           []Base       `json:"roles"`
-	Specializations []Base       `json:"specializations"`
-	Services        []BasePrice  `json:"services"`
-	Achievements    []BaseStatus `json:"achievements"`
-	Email           string       `json:"email"`
+	Services     []BasePrice  `json:"services"`
+	Achievements []BaseStatus `json:"achievements"`
+	Email        string       `json:"email"`
 }
 
 type ServiceCreate struct {

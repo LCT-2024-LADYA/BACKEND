@@ -22,6 +22,7 @@ type Users interface {
 	Register(ctx context.Context, user domain.UserCreate) (int, error)
 	Login(ctx context.Context, auth dto.Auth) (int, error)
 	GetByID(ctx context.Context, userID int) (dto.User, error)
+	GetCovers(ctx context.Context, search string, cursor int) (dto.UserCoverPagination, error)
 	UpdateMain(ctx context.Context, user domain.UserUpdate) error
 	UpdatePhotoUrl(c *gin.Context, newPhoto *multipart.FileHeader, userID int) error
 }
@@ -30,6 +31,7 @@ type Trainers interface {
 	Register(ctx context.Context, trainer domain.TrainerCreate) (int, error)
 	Login(ctx context.Context, auth dto.Auth) (int, error)
 	GetByID(ctx context.Context, trainerID int) (dto.Trainer, error)
+	GetCovers(ctx context.Context, filters domain.FiltersTrainerCovers) (dto.TrainerCoverPagination, error)
 	UpdateMain(ctx context.Context, trainer domain.TrainerUpdate) error
 	UpdatePhotoUrl(c *gin.Context, newPhoto *multipart.FileHeader, trainerID int) error
 	UpdateRoles(ctx context.Context, trainerID int, roleIDs []int) error

@@ -3,10 +3,10 @@ package domain
 import "gopkg.in/guregu/null.v3"
 
 type UserBase struct {
-	FirstName string
-	LastName  string
-	Age       int
-	Sex       int
+	FirstName string `db:"first_name"`
+	LastName  string `db:"last_name"`
+	Age       int    `db:"age"`
+	Sex       int    `db:"sex"`
 }
 
 type UserCreate struct {
@@ -23,8 +23,13 @@ type UserUpdate struct {
 
 type UserCover struct {
 	UserBase
-	ID       int
-	PhotoUrl null.String
+	ID       int         `db:"id"`
+	PhotoUrl null.String `db:"photo_url"`
+}
+
+type UserCoverPagination struct {
+	Users  []UserCover
+	Cursor int
 }
 
 type User struct {

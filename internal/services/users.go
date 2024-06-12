@@ -91,6 +91,21 @@ func (u userService) GetByID(ctx context.Context, userID int) (dto.User, error) 
 	return u.converter.UserDomainToDTO(user), nil
 }
 
+func (u userService) GetCovers(ctx context.Context, search string, cursor int) (dto.UserCoverPagination, error) {
+	ctx, cancel := context.WithTimeout(ctx, u.dbResponseTime)
+	defer cancel()
+
+	user, err := u.userRepo.GetCovers(ctx, search, cursor)
+	if err != nil {
+		u.logger.Error().Msg(err.Error())
+		return dto.UserCoverPagination{}, err
+	}
+
+	u.logger.Info().Msg(log.Normalizer(log.GetObjects, log.User))
+
+	return u.converter.UserCoverPaginationDomainToDTO(user), nil
+}
+
 func (u userService) UpdateMain(ctx context.Context, user domain.UserUpdate) error {
 	ctx, cancel := context.WithTimeout(ctx, u.dbResponseTime)
 	defer cancel()

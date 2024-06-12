@@ -847,6 +847,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/trainer": {
+            "get": {
+                "description": "Get trainer covers with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainers"
+                ],
+                "summary": "Get Trainer Covers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Cursor for pagination",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Role IDs",
+                        "name": "role_ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Specialization IDs",
+                        "name": "specialization_ids",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of trainer covers with pagination",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TrainerCoverPagination"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
         "/api/trainer/achievement": {
             "post": {
                 "description": "Create a new achievement for the trainer",
@@ -2078,6 +2144,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/user": {
+            "get": {
+                "description": "Get user covers with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get User Covers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Cursor for pagination",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of user covers with pagination",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserCoverPagination"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
         "/api/user/main": {
             "put": {
                 "description": "Update user's main info by provided data",
@@ -2714,6 +2826,81 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.TrainerCover": {
+            "type": "object",
+            "required": [
+                "age",
+                "experience",
+                "first_name",
+                "last_name",
+                "sex"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "maximum": 150,
+                    "minimum": 18
+                },
+                "experience": {
+                    "type": "integer",
+                    "maximum": 50,
+                    "minimum": 0
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "photo_url": {
+                    "type": "string"
+                },
+                "quote": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Base"
+                    }
+                },
+                "sex": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                },
+                "specializations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Base"
+                    }
+                }
+            }
+        },
+        "dto.TrainerCoverPagination": {
+            "type": "object",
+            "properties": {
+                "cursor": {
+                    "type": "integer"
+                },
+                "objects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TrainerCover"
+                    }
+                }
+            }
+        },
         "dto.TrainerCreate": {
             "type": "object",
             "required": [
@@ -2967,6 +3154,59 @@ const docTemplate = `{
                         1,
                         2
                     ]
+                }
+            }
+        },
+        "dto.UserCover": {
+            "type": "object",
+            "required": [
+                "age",
+                "first_name",
+                "last_name",
+                "sex"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "maximum": 150,
+                    "minimum": 14
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "photo_url": {
+                    "type": "string"
+                },
+                "sex": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "dto.UserCoverPagination": {
+            "type": "object",
+            "properties": {
+                "cursor": {
+                    "type": "integer"
+                },
+                "objects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UserCover"
+                    }
                 }
             }
         },

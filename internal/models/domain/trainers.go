@@ -5,12 +5,12 @@ import (
 )
 
 type TrainerBase struct {
-	FirstName  string
-	LastName   string
-	Age        int
-	Sex        int
-	Experience int
-	Quote      null.String
+	FirstName  string      `db:"first_name"`
+	LastName   string      `db:"last_name"`
+	Age        int         `db:"age"`
+	Sex        int         `db:"sex"`
+	Experience int         `db:"experience"`
+	Quote      null.String `db:"quote"`
 }
 
 type TrainerCreate struct {
@@ -27,15 +27,20 @@ type TrainerUpdate struct {
 
 type TrainerCover struct {
 	TrainerBase
-	ID       int
-	PhotoUrl null.String
+	ID              int         `db:"id"`
+	PhotoUrl        null.String `db:"photo_url"`
+	Roles           []Base      `json:"roles"`
+	Specializations []Base      `json:"specializations"`
+}
+
+type TrainerCoverPagination struct {
+	Trainers []TrainerCover
+	Cursor   int
 }
 
 type Trainer struct {
 	TrainerCover
-	Roles           []Base
-	Specializations []Base
-	Services        []BasePrice
-	Achievements    []BaseStatus
-	Email           string
+	Services     []BasePrice
+	Achievements []BaseStatus
+	Email        string
 }

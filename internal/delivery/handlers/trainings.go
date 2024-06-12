@@ -89,7 +89,7 @@ func (t TrainingHandler) GetExercises(c *gin.Context) {
 
 	pagination, err := t.service.GetExercises(ctx, search, cursor)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, responses.MessageResponse{Message: err.Error()})
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 

@@ -41,7 +41,7 @@ func (h *ChatHandler) GetUserChats(c *gin.Context) {
 
 	chats, err := h.service.GetUserChats(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, responses.MessageResponse{Message: err.Error()})
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
@@ -65,7 +65,7 @@ func (h *ChatHandler) GetTrainerChats(c *gin.Context) {
 
 	chats, err := h.service.GetTrainerChats(c.Request.Context(), trainerID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, responses.MessageResponse{Message: err.Error()})
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
@@ -107,7 +107,7 @@ func (h *ChatHandler) GetChatMessageUser(c *gin.Context) {
 
 	messages, err := h.service.GetChatMessage(c.Request.Context(), userID, trainerID, cursor)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, responses.MessageResponse{Message: err.Error()})
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
@@ -149,7 +149,7 @@ func (h *ChatHandler) GetChatMessageTrainer(c *gin.Context) {
 
 	messages, err := h.service.GetChatMessage(c.Request.Context(), userID, trainerID, cursor)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, responses.MessageResponse{Message: err.Error()})
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 

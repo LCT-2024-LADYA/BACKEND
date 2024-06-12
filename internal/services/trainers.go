@@ -91,6 +91,21 @@ func (t trainerService) GetByID(ctx context.Context, trainerID int) (dto.Trainer
 	return t.converter.TrainerDomainToDTO(trainer), nil
 }
 
+func (t trainerService) GetCovers(ctx context.Context, filters domain.FiltersTrainerCovers) (dto.TrainerCoverPagination, error) {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	trainers, err := t.trainerRepo.GetCovers(ctx, filters)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return dto.TrainerCoverPagination{}, err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Trainer))
+
+	return t.converter.TrainerCoverPaginationDomainToDTO(trainers), nil
+}
+
 func (t trainerService) UpdateMain(ctx context.Context, trainer domain.TrainerUpdate) error {
 	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
 	defer cancel()

@@ -16,9 +16,10 @@ import (
 )
 
 type TrainerHandler struct {
-	service   services.Trainers
-	converter converters.TrainerConverter
-	validate  *validator.Validate
+	service         services.Trainers
+	converter       converters.TrainerConverter
+	filterConverter converters.FilterConverter
+	validate        *validator.Validate
 }
 
 func InitTrainerHandler(
@@ -26,9 +27,10 @@ func InitTrainerHandler(
 	validate *validator.Validate,
 ) *TrainerHandler {
 	return &TrainerHandler{
-		service:   service,
-		converter: converters.InitTrainerConverter(),
-		validate:  validate,
+		service:         service,
+		filterConverter: converters.InitFilterConverter(),
+		converter:       converters.InitTrainerConverter(),
+		validate:        validate,
 	}
 }
 
@@ -97,6 +99,37 @@ func (t TrainerHandler) GetProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, trainer)
+}
+
+// GetCovers
+// @Summary Get Trainer Covers
+// @Description Get trainer covers with pagination
+// @Tags Trainers
+// @Accept json
+// @Produce json
+// @Param search query string false "Search term"
+// @Param cursor query int false "Cursor for pagination"
+// @Param role_ids query []int false "Role IDs"
+// @Param specialization_ids query []int false "Specialization IDs"
+// @Success 200 {object} dto.TrainerCoverPagination "List of trainer covers with pagination"
+// @Failure 400 {object} responses.MessageResponse "Invalid query parameters"
+// @Failure 500 "Internal server error"
+// @Router /api/trainer [get]
+func (t TrainerHandler) GetCovers(c *gin.Context) {
+	var filters dto.FiltersTrainerCovers
+
+	if err := c.ShouldBindQuery(&filters); err != nil {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadQuery})
+		return
+	}
+
+	trainerCovers, err := t.service.GetCovers(c.Request.Context(), t.filterConverter.FilterTrainerDTOToDomain(filters))
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, trainerCovers)
 }
 
 // UpdateMain

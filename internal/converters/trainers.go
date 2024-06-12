@@ -12,6 +12,8 @@ type TrainerConverter interface {
 
 	TrainerBaseDomainToDTO(trainer domain.TrainerBase) dto.TrainerBase
 	TrainerCoverDomainToDTO(trainer domain.TrainerCover) dto.TrainerCover
+	TrainerCoversDomainToDTO(trainers []domain.TrainerCover) []dto.TrainerCover
+	TrainerCoverPaginationDomainToDTO(trainer domain.TrainerCoverPagination) dto.TrainerCoverPagination
 	TrainerDomainToDTO(trainer domain.Trainer) dto.Trainer
 }
 
@@ -69,19 +71,36 @@ func (t trainerConverter) TrainerBaseDomainToDTO(trainer domain.TrainerBase) dto
 
 func (t trainerConverter) TrainerCoverDomainToDTO(trainer domain.TrainerCover) dto.TrainerCover {
 	return dto.TrainerCover{
-		TrainerBase: t.TrainerBaseDomainToDTO(trainer.TrainerBase),
-		ID:          trainer.ID,
-		PhotoUrl:    getStringPointer(trainer.PhotoUrl),
+		TrainerBase:     t.TrainerBaseDomainToDTO(trainer.TrainerBase),
+		Roles:           t.baseConverter.BasesDomainToDTO(trainer.Roles),
+		Specializations: t.baseConverter.BasesDomainToDTO(trainer.Specializations),
+		ID:              trainer.ID,
+		PhotoUrl:        getStringPointer(trainer.PhotoUrl),
+	}
+}
+
+func (t trainerConverter) TrainerCoversDomainToDTO(trainers []domain.TrainerCover) []dto.TrainerCover {
+	result := make([]dto.TrainerCover, len(trainers))
+
+	for i, trainer := range trainers {
+		result[i] = t.TrainerCoverDomainToDTO(trainer)
+	}
+
+	return result
+}
+
+func (t trainerConverter) TrainerCoverPaginationDomainToDTO(trainer domain.TrainerCoverPagination) dto.TrainerCoverPagination {
+	return dto.TrainerCoverPagination{
+		Trainers: t.TrainerCoversDomainToDTO(trainer.Trainers),
+		Cursor:   trainer.Cursor,
 	}
 }
 
 func (t trainerConverter) TrainerDomainToDTO(trainer domain.Trainer) dto.Trainer {
 	return dto.Trainer{
-		TrainerCover:    t.TrainerCoverDomainToDTO(trainer.TrainerCover),
-		Roles:           t.baseConverter.BasesDomainToDTO(trainer.Roles),
-		Specializations: t.baseConverter.BasesDomainToDTO(trainer.Specializations),
-		Services:        t.baseConverter.BasesPriceDomainToDTO(trainer.Services),
-		Achievements:    t.baseConverter.BasesStatusDomainToDTO(trainer.Achievements),
-		Email:           trainer.Email,
+		TrainerCover: t.TrainerCoverDomainToDTO(trainer.TrainerCover),
+		Services:     t.baseConverter.BasesPriceDomainToDTO(trainer.Services),
+		Achievements: t.baseConverter.BasesStatusDomainToDTO(trainer.Achievements),
+		Email:        trainer.Email,
 	}
 }
