@@ -61,6 +61,21 @@ func (b baseService) GetByName(ctx context.Context) ([]dto.Base, error) {
 	return b.converter.BasesDomainToDTO(bases), nil
 }
 
+func (b baseService) GetServiceByID(ctx context.Context, id int) (dto.BasePrice, error) {
+	ctx, cancel := context.WithTimeout(ctx, b.dbResponseTime)
+	defer cancel()
+
+	service, err := b.baseRepo.GetServiceByID(ctx, id)
+	if err != nil {
+		b.logger.Error().Msg(err.Error())
+		return dto.BasePrice{}, err
+	}
+
+	b.logger.Info().Msg(log.Normalizer(log.GetObject, "service", id))
+
+	return b.converter.BasePriceDomainToDTO(service), nil
+}
+
 func (b baseService) Delete(ctx context.Context, baseIDs []int) error {
 	ctx, cancel := context.WithTimeout(ctx, b.dbResponseTime)
 	defer cancel()

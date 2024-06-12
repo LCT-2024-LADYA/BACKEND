@@ -21,6 +21,8 @@ const (
 	Exercise = "exercise"
 	Training = "training"
 	Schedule = "schedule"
+	Message  = "message"
+	Chat     = "chat"
 )
 
 func Normalizer(mainEvent string, args ...any) string {

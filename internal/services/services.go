@@ -8,11 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/guregu/null.v3"
 	"mime/multipart"
+	"time"
 )
 
 type Base interface {
 	Create(ctx context.Context, base domain.BaseBase) (int, error)
 	GetByName(ctx context.Context) ([]dto.Base, error)
+	GetServiceByID(ctx context.Context, id int) (dto.BasePrice, error)
 	Delete(ctx context.Context, baseIDs []int) error
 }
 
@@ -56,4 +58,11 @@ type Trainings interface {
 	GetTrainingsDate(ctx context.Context, userTrainingIDs []int) ([]dto.TrainingDate, error)
 	ScheduleTraining(ctx context.Context, training domain.ScheduleTraining) (int, []int, error)
 	GetSchedule(ctx context.Context, month, userID int) ([]dto.Schedule, error)
+}
+
+type Chat interface {
+	CreateMessage(ctx context.Context, message domain.MessageCreate) (int, time.Time, error)
+	GetUserChats(ctx context.Context, userID int) ([]dto.Chat, error)
+	GetTrainerChats(ctx context.Context, trainerID int) ([]dto.Chat, error)
+	GetChatMessage(ctx context.Context, userID, trainerID, cursor int) (dto.MessagePagination, error)
 }

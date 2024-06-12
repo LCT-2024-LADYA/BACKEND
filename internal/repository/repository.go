@@ -4,11 +4,13 @@ import (
 	"BACKEND/internal/models/domain"
 	"context"
 	"gopkg.in/guregu/null.v3"
+	"time"
 )
 
 type Base interface {
 	Create(ctx context.Context, base domain.BaseBase) (int, error)
 	Get(ctx context.Context) ([]domain.Base, error)
+	GetServiceByID(ctx context.Context, id int) (domain.BasePrice, error)
 	Delete(ctx context.Context, baseIDs []int) error
 
 	GetTable() string
@@ -49,4 +51,11 @@ type Trainings interface {
 	GetTrainingsDate(ctx context.Context, userTrainingIDs []int) ([]domain.TrainingDate, error)
 	ScheduleTraining(ctx context.Context, training domain.ScheduleTraining) (int, []int, error)
 	GetSchedule(ctx context.Context, month, userID int) ([]domain.Schedule, error)
+}
+
+type Chat interface {
+	CreateMessage(ctx context.Context, message domain.MessageCreate) (int, time.Time, error)
+	GetUserChats(ctx context.Context, userID int) ([]domain.Chat, error)
+	GetTrainerChats(ctx context.Context, trainerID int) ([]domain.Chat, error)
+	GetChatMessage(ctx context.Context, userID, trainerID, cursor int) (domain.MessagePagination, error)
 }

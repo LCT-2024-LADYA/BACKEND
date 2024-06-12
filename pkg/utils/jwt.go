@@ -15,7 +15,7 @@ const (
 
 type JWT interface {
 	CreateToken(id int, userType string) string
-	Authorize(tokenString string, access string) (UserClaim, bool, error)
+	Authorize(tokenString string, access ...string) (UserClaim, bool, error)
 }
 
 type JWTUtil struct {
@@ -54,7 +54,7 @@ func (j JWTUtil) CreateToken(id int, userType string) string {
 	return signedString
 }
 
-func (j JWTUtil) Authorize(tokenString string, access string) (UserClaim, bool, error) {
+func (j JWTUtil) Authorize(tokenString string, accesses ...string) (UserClaim, bool, error) {
 	var claim UserClaim
 
 	token, err := jwt.ParseWithClaims(tokenString, &claim, func(token *jwt.Token) (interface{}, error) {
@@ -68,10 +68,13 @@ func (j JWTUtil) Authorize(tokenString string, access string) (UserClaim, bool, 
 		return UserClaim{}, false, nil
 	}
 
-	switch access {
-	case Admin, Trainer, User:
-		return claim, claim.UserType == access, nil
-	default:
-		panic("you are passing wrong access")
+	var match bool
+	for _, access := range accesses {
+		if access == claim.UserType {
+			match = true
+			break
+		}
 	}
+
+	return claim, match, nil
 }

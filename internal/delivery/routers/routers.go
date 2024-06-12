@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"BACKEND/internal/delivery/chat"
 	"BACKEND/internal/delivery/handlers"
 	"BACKEND/internal/delivery/middleware"
 	"BACKEND/internal/repository"
@@ -29,6 +30,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	specializationRepo := repository.InitBaseRepo(db, repository.SpecializationTable)
 	roleRepo := repository.InitBaseRepo(db, repository.RoleTable)
 	trainingRepo := repository.InitTrainingRepo(db, entitiesPerRequest)
+	chatRepo := repository.InitChatRepo(db, entitiesPerRequest)
 
 	// Инициализация сервисов
 	userService := services.InitUserService(userRepo, dbResponseTime, logger)
@@ -37,6 +39,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	specializationService := services.InitBaseService(specializationRepo, dbResponseTime, logger)
 	roleService := services.InitBaseService(roleRepo, dbResponseTime, logger)
 	trainingService := services.InitTrainingService(trainingRepo, dbResponseTime, logger)
+	chatService := services.InitChatService(chatRepo, dbResponseTime, logger)
 
 	// Инициализация хендлеров
 	authHandler := handlers.InitAuthHandler(userService, trainerService, tokenService, validate)
@@ -45,13 +48,15 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	specializationHandler := handlers.InitSpecializationHandler(specializationService, validate)
 	roleHandler := handlers.InitRoleHandler(roleService, validate)
 	trainingHandler := handlers.InitTrainingsHandler(trainingService)
+	chatHandler := handlers.InitChatHandler(chatService)
+	serviceHandler := handlers.InitServiceHandler(roleService)
 
 	// Инициализация middleware
 	userMiddleware := middleWarrior.Authorization(utils.User)
 	trainerMiddleware := middleWarrior.Authorization(utils.Trainer)
 	adminMiddleware := middleWarrior.Authorization(utils.Admin)
 
-	// Группа маршрутов без middleware
+	// Группа маршрутов
 	baseGroup := engine.Group("/api")
 	initAuthRouter(baseGroup, authHandler, adminMiddleware)
 	initUserRouter(baseGroup, userHandler, userMiddleware)
@@ -59,6 +64,13 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	initRolesRouter(baseGroup, roleHandler, adminMiddleware)
 	initSpecializationsRouter(baseGroup, specializationHandler, adminMiddleware)
 	initTrainingsRouter(baseGroup, trainingHandler, userMiddleware, adminMiddleware)
+	initChatRouter(baseGroup, chatHandler, userMiddleware, trainerMiddleware)
+	initServiceRouter(baseGroup, serviceHandler)
+
+	wsGroup := engine.Group("/ws")
+	chatServer := chat.NewServer(chatService, jwtUtil, logger)
+	go chatServer.Listen()
+	wsGroup.GET("", chatServer.ChatHandler)
 }
 
 func initAuthRouter(group *gin.RouterGroup, authHandler *handlers.AuthHandler, adminMiddleware gin.HandlerFunc) {
@@ -114,6 +126,12 @@ func initSpecializationsRouter(group *gin.RouterGroup, specializationHandler *ha
 	specializationGroup.DELETE("", adminMiddleware, specializationHandler.DeleteSpecializations)
 }
 
+func initServiceRouter(group *gin.RouterGroup, serviceHandler *handlers.ServiceHandler) {
+	serviceGroup := group.Group("/service")
+
+	serviceGroup.GET(":id", serviceHandler.GetServiceByID)
+}
+
 func initTrainingsRouter(group *gin.RouterGroup, trainingHandler *handlers.TrainingHandler, userMiddleware gin.HandlerFunc, adminMiddleware gin.HandlerFunc) {
 	trainingGroup := group.Group("/training")
 
@@ -128,4 +146,13 @@ func initTrainingsRouter(group *gin.RouterGroup, trainingHandler *handlers.Train
 	trainingGroup.GET("date", trainingHandler.GetTrainingsDate)
 	trainingGroup.POST("schedule", userMiddleware, trainingHandler.ScheduleTraining)
 	trainingGroup.GET("schedule", userMiddleware, trainingHandler.GetSchedule)
+}
+
+func initChatRouter(group *gin.RouterGroup, chatHandler *handlers.ChatHandler, userMiddleware gin.HandlerFunc, trainerMiddleware gin.HandlerFunc) {
+	chatGroup := group.Group("/chat")
+
+	chatGroup.GET("user", userMiddleware, chatHandler.GetUserChats)
+	chatGroup.GET("trainer", trainerMiddleware, chatHandler.GetTrainerChats)
+	chatGroup.GET("user/:trainer_id", userMiddleware, chatHandler.GetChatMessageUser)
+	chatGroup.GET("trainer/:user_id", trainerMiddleware, chatHandler.GetChatMessageTrainer)
 }

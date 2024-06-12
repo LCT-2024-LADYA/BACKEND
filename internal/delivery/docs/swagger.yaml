@@ -55,6 +55,21 @@ definitions:
       name:
         type: string
     type: object
+  dto.Chat:
+    properties:
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_message:
+        type: string
+      last_name:
+        type: string
+      photo_url:
+        type: string
+      time_last_message:
+        type: string
+    type: object
   dto.Exercise:
     properties:
       additionalMuscle:
@@ -150,6 +165,32 @@ definitions:
     properties:
       status:
         type: boolean
+    type: object
+  dto.Message:
+    properties:
+      id:
+        type: integer
+      is_to_user:
+        type: boolean
+      message:
+        type: string
+      service_id:
+        type: integer
+      time:
+        type: string
+      trainer_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  dto.MessagePagination:
+    properties:
+      cursor:
+        type: integer
+      objects:
+        items:
+          $ref: '#/definitions/dto.Message'
+        type: array
     type: object
   dto.Schedule:
     properties:
@@ -711,6 +752,152 @@ paths:
       summary: User Register
       tags:
       - Authorization
+  /api/chat/trainer:
+    get:
+      consumes:
+      - application/json
+      description: Get all chats for a trainer
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of chats
+          schema:
+            items:
+              $ref: '#/definitions/dto.Chat'
+            type: array
+        "400":
+          description: Bad JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Trainer Chats
+      tags:
+      - Chats
+  /api/chat/trainer/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get messages for a chat between a user and a trainer - trainer
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of messages with pagination
+          schema:
+            $ref: '#/definitions/dto.MessagePagination'
+        "400":
+          description: Bad path or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Chat Messages Trainer
+      tags:
+      - Chats
+  /api/chat/user:
+    get:
+      consumes:
+      - application/json
+      description: Get all chats for a user
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of chats
+          schema:
+            items:
+              $ref: '#/definitions/dto.Chat'
+            type: array
+        "400":
+          description: Bad JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get User Chats
+      tags:
+      - Chats
+  /api/chat/user/{trainer_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get messages for a chat between a user and a trainer - user
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Trainer ID
+        in: path
+        name: trainer_id
+        required: true
+        type: integer
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of messages with pagination
+          schema:
+            $ref: '#/definitions/dto.MessagePagination'
+        "400":
+          description: Bad path or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Chat Messages User
+      tags:
+      - Chats
   /api/role:
     delete:
       consumes:
@@ -810,6 +997,37 @@ paths:
       summary: Create Role
       tags:
       - Roles
+  /api/service/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a service by its ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service details
+          schema:
+            $ref: '#/definitions/dto.BasePrice'
+        "400":
+          description: Invalid service ID
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "404":
+          description: Service not found
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Service by ID
+      tags:
+      - Services
   /api/specialization:
     delete:
       consumes:
