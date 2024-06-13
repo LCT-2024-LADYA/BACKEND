@@ -212,7 +212,7 @@ func (t trainingConverter) TrainingCreateBaseDTOToDomain(training dto.TrainingCr
 	return domain.TrainingCreateBase{
 		Name:        training.Name,
 		Description: training.Description,
-		Exercises:   training.Exercises,
+		Exercises:   t.ExerciseStepsBasesDTOToDomain(training.Exercises),
 	}
 }
 

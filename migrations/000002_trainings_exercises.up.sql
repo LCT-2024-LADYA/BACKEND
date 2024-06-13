@@ -24,7 +24,6 @@ CREATE TABLE trainings_exercises
     step        INTEGER NOT NULL,
     training_id INTEGER NOT NULL,
     exercise_id INTEGER NOT NULL,
-    UNIQUE (training_id, exercise_id),
     FOREIGN KEY (training_id) REFERENCES trainings (id) ON DELETE CASCADE,
     FOREIGN KEY (exercise_id) REFERENCES exercises (id) ON DELETE CASCADE
 );

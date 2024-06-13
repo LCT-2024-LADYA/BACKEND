@@ -142,14 +142,14 @@ func (t trainingRepo) CreateTrainingBases(ctx context.Context, trainings []domai
 	exerciseValueArgs := make([]interface{}, 0)
 	argIndex := 1
 	for i, training := range trainings {
-		for _, exerciseID := range training.Exercises {
-			exerciseValueStrings = append(exerciseValueStrings, fmt.Sprintf("($%d, $%d)", argIndex, argIndex+1))
-			exerciseValueArgs = append(exerciseValueArgs, createdIDs[i], exerciseID)
-			argIndex += 2
+		for _, exercise := range training.Exercises {
+			exerciseValueStrings = append(exerciseValueStrings, fmt.Sprintf("($%d, $%d, $%d)", argIndex, argIndex+1, argIndex+2))
+			exerciseValueArgs = append(exerciseValueArgs, createdIDs[i], exercise.ID, exercise.Step)
+			argIndex += 3
 		}
 	}
 
-	exerciseQuery := fmt.Sprintf("INSERT INTO trainings_exercises (training_id, exercise_id) VALUES %s", strings.Join(exerciseValueStrings, ","))
+	exerciseQuery := fmt.Sprintf("INSERT INTO trainings_exercises (training_id, exercise_id, step) VALUES %s", strings.Join(exerciseValueStrings, ","))
 	res, err := tx.ExecContext(ctx, exerciseQuery, exerciseValueArgs...)
 	if err != nil {
 		tx.Rollback()

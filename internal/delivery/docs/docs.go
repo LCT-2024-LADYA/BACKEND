@@ -2737,7 +2737,7 @@ const docTemplate = `{
         "dto.ExerciseDetail": {
             "type": "object",
             "properties": {
-                "exercise_id": {
+                "id": {
                     "type": "integer"
                 },
                 "reps": {
@@ -3230,7 +3230,7 @@ const docTemplate = `{
                 "exercises": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/dto.ExerciseStep"
                     }
                 },
                 "name": {

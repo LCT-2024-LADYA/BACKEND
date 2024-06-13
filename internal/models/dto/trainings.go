@@ -35,16 +35,17 @@ type ExercisePagination struct {
 	Cursor    int            `json:"cursor"`
 }
 
-type TrainingCreateBase struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Exercises   []int  `json:"exercises"`
-}
-
 type ExerciseStep struct {
 	ID   int `json:"id"`
 	Step int `json:"step"`
 }
+
+type TrainingCreateBase struct {
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Exercises   []ExerciseStep `json:"exercises"`
+}
+
 type TrainingCreate struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
@@ -77,7 +78,7 @@ type UserTraining struct {
 }
 
 type ExerciseDetail struct {
-	ExerciseID int `json:"exercise_id"`
+	ExerciseID int `json:"id"`
 	Sets       int `json:"sets"`
 	Reps       int `json:"reps"`
 	Weight     int `json:"weight"`

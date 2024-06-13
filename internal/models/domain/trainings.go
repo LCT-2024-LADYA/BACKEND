@@ -35,16 +35,17 @@ type ExercisePagination struct {
 	Cursor    int
 }
 
-type TrainingCreateBase struct {
-	Name        string
-	Description string
-	Exercises   []int
-}
-
 type ExerciseStep struct {
 	ID   int
 	Step int
 }
+
+type TrainingCreateBase struct {
+	Name        string
+	Description string
+	Exercises   []ExerciseStep
+}
+
 type TrainingCreate struct {
 	UserID      int
 	Name        string

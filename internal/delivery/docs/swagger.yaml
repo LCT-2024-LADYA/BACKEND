@@ -166,7 +166,7 @@ definitions:
     type: object
   dto.ExerciseDetail:
     properties:
-      exercise_id:
+      id:
         type: integer
       reps:
         type: integer
@@ -512,7 +512,7 @@ definitions:
         type: string
       exercises:
         items:
-          type: integer
+          $ref: '#/definitions/dto.ExerciseStep'
         type: array
       name:
         type: string
