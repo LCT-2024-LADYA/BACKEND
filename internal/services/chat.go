@@ -46,11 +46,11 @@ func (c chatService) CreateMessage(ctx context.Context, message domain.MessageCr
 	return createdID, t, nil
 }
 
-func (c chatService) GetUserChats(ctx context.Context, userID int) ([]dto.Chat, error) {
+func (c chatService) GetUserChats(ctx context.Context, userID int, search string) ([]dto.Chat, error) {
 	ctx, cancel := context.WithTimeout(ctx, c.dbResponseTime)
 	defer cancel()
 
-	chats, err := c.chatRepo.GetUserChats(ctx, userID)
+	chats, err := c.chatRepo.GetUserChats(ctx, userID, search)
 	if err != nil {
 		c.logger.Error().Msg(err.Error())
 		return []dto.Chat{}, err
@@ -61,11 +61,11 @@ func (c chatService) GetUserChats(ctx context.Context, userID int) ([]dto.Chat, 
 	return c.converter.ChatsDomainToDTO(chats), nil
 }
 
-func (c chatService) GetTrainerChats(ctx context.Context, trainerID int) ([]dto.Chat, error) {
+func (c chatService) GetTrainerChats(ctx context.Context, trainerID int, search string) ([]dto.Chat, error) {
 	ctx, cancel := context.WithTimeout(ctx, c.dbResponseTime)
 	defer cancel()
 
-	chats, err := c.chatRepo.GetTrainerChats(ctx, trainerID)
+	chats, err := c.chatRepo.GetTrainerChats(ctx, trainerID, search)
 	if err != nil {
 		c.logger.Error().Msg(err.Error())
 		return []dto.Chat{}, err

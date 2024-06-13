@@ -57,7 +57,7 @@ type Trainings interface {
 
 type Chat interface {
 	CreateMessage(ctx context.Context, message domain.MessageCreate) (int, time.Time, error)
-	GetUserChats(ctx context.Context, userID int) ([]domain.Chat, error)
-	GetTrainerChats(ctx context.Context, trainerID int) ([]domain.Chat, error)
+	GetUserChats(ctx context.Context, userID int, search string) ([]domain.Chat, error)
+	GetTrainerChats(ctx context.Context, trainerID int, search string) ([]domain.Chat, error)
 	GetChatMessage(ctx context.Context, userID, trainerID, cursor int) (domain.MessagePagination, error)
 }

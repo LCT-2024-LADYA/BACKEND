@@ -71,8 +71,8 @@ func (t TrainerHandler) Me(c *gin.Context) {
 // @Tags Trainers
 // @Accept json
 // @Produce json
-// @Param trainer_id path int true "User ID"
-// @Success 200 {object} dto.User "Return user"
+// @Param trainer_id path int true "Trainer ID"
+// @Success 200 {object} dto.Trainer "Return trainer"
 // @Failure 400 {object} responses.MessageResponse "Bad body or JWT provided"
 // @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
 // @Failure 500 "Internal Server Error"

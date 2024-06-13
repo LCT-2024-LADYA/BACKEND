@@ -95,17 +95,21 @@ func (c chatRepo) GetChatMessage(ctx context.Context, userID, trainerID, cursor 
 	}, nil
 }
 
-func (c chatRepo) GetUserChats(ctx context.Context, userID int) ([]domain.Chat, error) {
+func (c chatRepo) GetUserChats(ctx context.Context, userID int, search string) ([]domain.Chat, error) {
 	query := `
-		SELECT t.id, t.photo_url, t.first_name, t.last_name, m.message, m.time
-		FROM messages m
-		JOIN trainers t ON m.trainer_id = t.id
-		WHERE m.user_id = $1
-		ORDER BY m.time DESC
-		LIMIT 1;
+	SELECT t.id, t.photo_url, t.first_name, t.last_name, m.message, m.time
+	FROM messages m
+	JOIN trainers t ON m.trainer_id = t.id
+	JOIN (
+	    SELECT trainer_id, MAX(time) AS latest_time
+	    FROM messages
+	    GROUP BY trainer_id, user_id
+	) latest_messages ON m.trainer_id = latest_messages.trainer_id AND m.time = latest_messages.latest_time
+	WHERE user_id = $1 AND (t.first_name LIKE '%' || $2 || '%' OR t.last_name LIKE '%' || $2 || '%')
+	ORDER BY m.time DESC
 	`
 
-	rows, err := c.db.QueryContext(ctx, query, userID)
+	rows, err := c.db.QueryContext(ctx, query, userID, search)
 	if err != nil {
 		return nil, err
 	}
@@ -135,17 +139,21 @@ func (c chatRepo) GetUserChats(ctx context.Context, userID int) ([]domain.Chat, 
 	return chats, nil
 }
 
-func (c chatRepo) GetTrainerChats(ctx context.Context, trainerID int) ([]domain.Chat, error) {
+func (c chatRepo) GetTrainerChats(ctx context.Context, trainerID int, search string) ([]domain.Chat, error) {
 	query := `
-		SELECT u.id, u.photo_url, u.first_name, u.last_name, m.message, m.time
-		FROM messages m
-		JOIN users u ON m.user_id = u.id
-		WHERE m.trainer_id = $1
-		ORDER BY m.time DESC
-		LIMIT 1;
+	SELECT u.id, u.photo_url, u.first_name, u.last_name, m.message, m.time
+	FROM messages m
+	JOIN users u ON m.user_id = u.id
+	JOIN (
+	    SELECT user_id, MAX(time) AS latest_time
+	    FROM messages
+	    GROUP BY trainer_id, user_id
+	) latest_messages ON m.user_id = latest_messages.user_id AND m.time = latest_messages.latest_time
+	WHERE trainer_id = $1 AND (u.first_name LIKE '%' || $2 || '%' OR u.last_name LIKE '%' || $2 || '%')
+	ORDER BY m.time DESC
 	`
 
-	rows, err := c.db.QueryContext(ctx, query, trainerID)
+	rows, err := c.db.QueryContext(ctx, query, trainerID, search)
 	if err != nil {
 		return nil, err
 	}

@@ -302,6 +302,12 @@ const docTemplate = `{
                         "name": "access_token",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -412,6 +418,12 @@ const docTemplate = `{
                         "name": "access_token",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1516,7 +1528,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
+                        "description": "Trainer ID",
                         "name": "trainer_id",
                         "in": "path",
                         "required": true
@@ -1524,9 +1536,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Return user",
+                        "description": "Return trainer",
                         "schema": {
-                            "$ref": "#/definitions/dto.User"
+                            "$ref": "#/definitions/dto.Trainer"
                         }
                     },
                     "400": {

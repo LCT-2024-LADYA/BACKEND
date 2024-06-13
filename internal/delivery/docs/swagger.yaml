@@ -855,6 +855,10 @@ paths:
         name: access_token
         required: true
         type: string
+      - description: Search term
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
@@ -927,6 +931,10 @@ paths:
         in: header
         name: access_token
         required: true
+        type: string
+      - description: Search term
+        in: query
+        name: search
         type: string
       produces:
       - application/json
@@ -1269,7 +1277,7 @@ paths:
       - application/json
       description: Returned data for profile
       parameters:
-      - description: User ID
+      - description: Trainer ID
         in: path
         name: trainer_id
         required: true
@@ -1278,9 +1286,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Return user
+          description: Return trainer
           schema:
-            $ref: '#/definitions/dto.User'
+            $ref: '#/definitions/dto.Trainer'
         "400":
           description: Bad body or JWT provided
           schema:

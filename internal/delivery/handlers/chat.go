@@ -31,15 +31,17 @@ func InitChatHandler(
 // @Accept json
 // @Produce json
 // @Param access_token header string true "Access token"
+// @Param search query string false "Search term"
 // @Success 200 {object} []dto.Chat "List of chats"
 // @Failure 400 {object} responses.MessageResponse "Bad JWT provided"
 // @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
 // @Failure 500 "Internal server error"
 // @Router /api/chat/user [get]
 func (h *ChatHandler) GetUserChats(c *gin.Context) {
+	search := c.Query("search")
 	userID := c.GetInt(middleware.UserID)
 
-	chats, err := h.service.GetUserChats(c.Request.Context(), userID)
+	chats, err := h.service.GetUserChats(c.Request.Context(), userID, search)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
@@ -55,15 +57,17 @@ func (h *ChatHandler) GetUserChats(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param access_token header string true "Access token"
+// @Param search query string false "Search term"
 // @Success 200 {array} dto.Chat "List of chats"
 // @Failure 400 {object} responses.MessageResponse "Bad JWT provided"
 // @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
 // @Failure 500 "Internal server error"
 // @Router /api/chat/trainer [get]
 func (h *ChatHandler) GetTrainerChats(c *gin.Context) {
+	search := c.Query("search")
 	trainerID := c.GetInt(middleware.UserID)
 
-	chats, err := h.service.GetTrainerChats(c.Request.Context(), trainerID)
+	chats, err := h.service.GetTrainerChats(c.Request.Context(), trainerID, search)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
