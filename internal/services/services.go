@@ -57,9 +57,11 @@ type Trainings interface {
 	SetExerciseStatus(ctx context.Context, usersTrainingsID, usersExercisesID int, status bool) error
 	GetTrainingCovers(ctx context.Context, search string, userID null.Int, cursor int) (dto.TrainingCoverPagination, error)
 	GetTraining(ctx context.Context, trainingID int) (dto.Training, error)
-	GetTrainingsDate(ctx context.Context, userTrainingIDs []int) ([]dto.TrainingDate, error)
+	GetScheduleTrainings(ctx context.Context, userTrainingIDs []int) ([]dto.UserTraining, error)
 	ScheduleTraining(ctx context.Context, training domain.ScheduleTraining) (int, []int, error)
 	GetSchedule(ctx context.Context, month, userID int) ([]dto.Schedule, error)
+	DeleteUserTraining(ctx context.Context, trainingID int) error
+	DeleteScheduledTraining(ctx context.Context, userTrainingID int) error
 }
 
 type Chat interface {

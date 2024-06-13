@@ -17,17 +17,17 @@ type ExerciseBase struct {
 	ID int `json:"id"`
 }
 
-type ExerciseCreate struct {
-	ID     int  `json:"id"`
+type ExerciseBaseStep struct {
+	ExerciseBase
+	Step int
+}
+
+type Exercise struct {
+	ExerciseBaseStep
 	Sets   int  `json:"sets"`
 	Reps   int  `json:"reps"`
 	Weight int  `json:"weight"`
 	Status bool `json:"status"`
-}
-
-type Exercise struct {
-	ExerciseCreateBase
-	ExerciseCreate
 }
 
 type ExercisePagination struct {
@@ -41,10 +41,14 @@ type TrainingCreateBase struct {
 	Exercises   []int  `json:"exercises"`
 }
 
+type ExerciseStep struct {
+	ID   int `json:"id"`
+	Step int `json:"step"`
+}
 type TrainingCreate struct {
-	Name        string           `json:"name"`
-	Description string           `json:"description"`
-	Exercises   []ExerciseCreate `json:"exercises"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Exercises   []ExerciseStep `json:"exercises"`
 }
 
 type TrainingCover struct {
@@ -61,21 +65,29 @@ type TrainingCoverPagination struct {
 
 type Training struct {
 	TrainingCover
-	Exercises []Exercise `json:"exercises"`
+	Exercises []ExerciseBaseStep `json:"exercises"`
 }
 
-type TrainingDate struct {
+type UserTraining struct {
 	Training
+	Exercises []Exercise
 	Date      time.Time `json:"date"`
 	TimeStart time.Time `json:"time_start"`
 	TimeEnd   time.Time `json:"time_end"`
 }
 
+type ExerciseDetail struct {
+	ExerciseID int `json:"exercise_id"`
+	Sets       int `json:"sets"`
+	Reps       int `json:"reps"`
+	Weight     int `json:"weight"`
+}
 type ScheduleTraining struct {
 	TrainingID int       `json:"id"`
 	Date       time.Time `json:"date"`
 	TimeStart  time.Time `json:"time_start"`
 	TimeEnd    time.Time `json:"time_end"`
+	Exercises  []ExerciseDetail
 }
 
 type Schedule struct {

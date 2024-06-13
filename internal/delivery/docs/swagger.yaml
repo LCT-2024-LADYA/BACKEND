@@ -94,6 +94,8 @@ definitions:
         type: integer
       status:
         type: boolean
+      step:
+        type: integer
       type:
         type: string
       weight:
@@ -120,18 +122,28 @@ definitions:
       type:
         type: string
     type: object
-  dto.ExerciseCreate:
+  dto.ExerciseBaseStep:
     properties:
+      additionalMuscle:
+        type: string
+      difficulty:
+        type: string
+      equipment:
+        type: string
       id:
         type: integer
-      reps:
+      muscle:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+      step:
         type: integer
-      sets:
-        type: integer
-      status:
-        type: boolean
-      weight:
-        type: integer
+      type:
+        type: string
     type: object
   dto.ExerciseCreateBase:
     properties:
@@ -152,6 +164,17 @@ definitions:
       type:
         type: string
     type: object
+  dto.ExerciseDetail:
+    properties:
+      exercise_id:
+        type: integer
+      reps:
+        type: integer
+      sets:
+        type: integer
+      weight:
+        type: integer
+    type: object
   dto.ExercisePagination:
     properties:
       cursor:
@@ -165,6 +188,13 @@ definitions:
     properties:
       status:
         type: boolean
+    type: object
+  dto.ExerciseStep:
+    properties:
+      id:
+        type: integer
+      step:
+        type: integer
     type: object
   dto.Message:
     properties:
@@ -205,6 +235,10 @@ definitions:
     properties:
       date:
         type: string
+      exercises:
+        items:
+          $ref: '#/definitions/dto.ExerciseDetail'
+        type: array
       id:
         type: integer
       time_end:
@@ -434,7 +468,7 @@ definitions:
         type: string
       exercises:
         items:
-          $ref: '#/definitions/dto.Exercise'
+          $ref: '#/definitions/dto.ExerciseBaseStep'
         type: array
       id:
         type: integer
@@ -467,7 +501,7 @@ definitions:
         type: string
       exercises:
         items:
-          $ref: '#/definitions/dto.ExerciseCreate'
+          $ref: '#/definitions/dto.ExerciseStep'
         type: array
       name:
         type: string
@@ -481,25 +515,6 @@ definitions:
           type: integer
         type: array
       name:
-        type: string
-    type: object
-  dto.TrainingDate:
-    properties:
-      date:
-        type: string
-      description:
-        type: string
-      exercises:
-        items:
-          $ref: '#/definitions/dto.Exercise'
-        type: array
-      id:
-        type: integer
-      name:
-        type: string
-      time_end:
-        type: string
-      time_start:
         type: string
     type: object
   dto.User:
@@ -603,6 +618,25 @@ definitions:
     - last_name
     - password
     - sex
+    type: object
+  dto.UserTraining:
+    properties:
+      date:
+        type: string
+      description:
+        type: string
+      exercises:
+        items:
+          $ref: '#/definitions/dto.Exercise'
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+      time_end:
+        type: string
+      time_start:
+        type: string
     type: object
   dto.UserUpdate:
     properties:
@@ -1891,7 +1925,7 @@ paths:
           description: Return trainings with dates
           schema:
             items:
-              $ref: '#/definitions/dto.TrainingDate'
+              $ref: '#/definitions/dto.UserTraining'
             type: array
         "400":
           description: Invalid user training IDs
@@ -2048,6 +2082,35 @@ paths:
       summary: Schedule Training
       tags:
       - Trainings
+  /api/training/schedule/{user_training_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a scheduled training for a specific date
+      parameters:
+      - description: User Training ID
+        in: path
+        name: user_training_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Scheduled training deleted successfully
+        "400":
+          description: Invalid user training ID
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Delete Scheduled Training
+      tags:
+      - Trainings
   /api/training/user:
     get:
       consumes:
@@ -2085,6 +2148,35 @@ paths:
         "500":
           description: Internal server error
       summary: Get User Training Covers
+      tags:
+      - Trainings
+  /api/training/user/{training_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user training
+      parameters:
+      - description: Training ID
+        in: path
+        name: training_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Training deleted successfully
+        "400":
+          description: Invalid training ID
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Delete User Training
       tags:
       - Trainings
   /api/user:

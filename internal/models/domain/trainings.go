@@ -17,17 +17,17 @@ type ExerciseBase struct {
 	ID int
 }
 
-type ExerciseCreate struct {
-	ID     int
+type ExerciseBaseStep struct {
+	ExerciseBase
+	Step int
+}
+
+type Exercise struct {
+	ExerciseBaseStep
 	Sets   int
 	Reps   int
 	Weight int
 	Status bool
-}
-
-type Exercise struct {
-	ExerciseCreateBase
-	ExerciseCreate
 }
 
 type ExercisePagination struct {
@@ -41,11 +41,15 @@ type TrainingCreateBase struct {
 	Exercises   []int
 }
 
+type ExerciseStep struct {
+	ID   int
+	Step int
+}
 type TrainingCreate struct {
 	UserID      int
 	Name        string
 	Description string
-	Exercises   []ExerciseCreate
+	Exercises   []ExerciseStep
 }
 
 type TrainingCover struct {
@@ -62,22 +66,30 @@ type TrainingCoverPagination struct {
 
 type Training struct {
 	TrainingCover
-	Exercises []Exercise
+	Exercises []ExerciseBaseStep
 }
 
-type TrainingDate struct {
+type UserTraining struct {
 	Training
+	Exercises []Exercise
 	Date      time.Time
 	TimeStart time.Time
 	TimeEnd   time.Time
 }
 
+type ExerciseDetail struct {
+	ExerciseID int
+	Sets       int
+	Reps       int
+	Weight     int
+}
 type ScheduleTraining struct {
 	TrainingID int
 	UserID     int
 	Date       time.Time
 	TimeStart  time.Time
 	TimeEnd    time.Time
+	Exercises  []ExerciseDetail
 }
 
 type Schedule struct {

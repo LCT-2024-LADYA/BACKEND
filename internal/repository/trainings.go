@@ -6,7 +6,6 @@ import (
 	"BACKEND/pkg/customerr"
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -188,28 +187,25 @@ func (t trainingRepo) CreateTraining(ctx context.Context, training domain.Traini
 		return 0, []int{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.TransactionErr, Err: err})
 	}
 
-	// Вставка тренировки
-	query := `
-		INSERT INTO trainings (name, description, user_id)
-		VALUES ($1, $2, $3)
-		RETURNING id`
+	// Insert training
+	query := `INSERT INTO trainings (name, description, user_id) VALUES ($1, $2, $3) RETURNING id`
 	err = tx.QueryRowContext(ctx, query, training.Name, training.Description, training.UserID).Scan(&createdID)
 	if err != nil {
 		tx.Rollback()
 		return 0, []int{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
 	}
 
-	// Вставка упражнений для тренировки и получение их идентификаторов
+	// Insert exercises for the training and get their IDs
 	var trainingExerciseIDs []int
 	if len(training.Exercises) > 0 {
 		valueStrings := make([]string, 0, len(training.Exercises))
-		valueArgs := make([]interface{}, 0, len(training.Exercises)*5)
+		valueArgs := make([]interface{}, 0, len(training.Exercises)*3)
 		for i, exercise := range training.Exercises {
-			valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", i*5+1, i*5+2, i*5+3, i*5+4, i*5+5))
-			valueArgs = append(valueArgs, createdID, exercise.ID, exercise.Sets, exercise.Reps, exercise.Weight)
+			valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d)", i*3+1, i*3+2, i*3+3))
+			valueArgs = append(valueArgs, createdID, exercise.ID, exercise.Step)
 		}
 
-		exerciseQuery := fmt.Sprintf("INSERT INTO trainings_exercises (training_id, exercise_id, sets, reps, weight) VALUES %s RETURNING id", strings.Join(valueStrings, ","))
+		exerciseQuery := fmt.Sprintf("INSERT INTO trainings_exercises (training_id, exercise_id, step) VALUES %s RETURNING id", strings.Join(valueStrings, ","))
 		rows, err := tx.QueryContext(ctx, exerciseQuery, valueArgs...)
 		if err != nil {
 			tx.Rollback()
@@ -240,37 +236,18 @@ func (t trainingRepo) SetExerciseStatus(ctx context.Context, usersTrainingsID, e
 		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.TransactionErr, Err: err})
 	}
 
-	// Найти trainings_exercises_id по exerciseID и usersTrainingsID
-	var trainingsExercisesID int
-	query := `
-		SELECT te.id
-		FROM trainings_exercises te
-		JOIN user_trainings_exercises ute ON te.id = ute.trainings_exercises_id
-		WHERE ute.users_trainings_id = $1 AND te.exercise_id = $2
-	`
-	err = tx.GetContext(ctx, &trainingsExercisesID, query, usersTrainingsID, exerciseID)
-	if err != nil {
-		tx.Rollback()
-		if errors.Is(err, sql.ErrNoRows) {
-			return errs.ErrNoExercise
-		}
-		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
-	}
-
 	// Обновить статус
-	updateQuery := `UPDATE user_trainings_exercises SET status = $1 WHERE users_trainings_id = $2 AND trainings_exercises_id = $3`
-	res, err := tx.ExecContext(ctx, updateQuery, status, usersTrainingsID, trainingsExercisesID)
+	updateQuery := `UPDATE user_trainings_exercises SET status = $1 WHERE users_trainings_id = $2 AND exercise_id = $3`
+	res, err := tx.ExecContext(ctx, updateQuery, status, usersTrainingsID, exerciseID)
 	if err != nil {
 		tx.Rollback()
 		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
 	}
-
 	count, err := res.RowsAffected()
 	if err != nil {
 		tx.Rollback()
 		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
 	}
-
 	if count != 1 {
 		tx.Rollback()
 		return errs.ErrNoExercise
@@ -344,16 +321,18 @@ func (t trainingRepo) GetTrainingCovers(ctx context.Context, search string, user
 	}, nil
 }
 
-func (t trainingRepo) GetTrainingsDate(ctx context.Context, userTrainingIDs []int) ([]domain.TrainingDate, error) {
-	var trainingDates []domain.TrainingDate
-
-	// Получение основной информации о тренировках и времени их проведения
+func (t trainingRepo) GetScheduleTrainings(ctx context.Context, userTrainingIDs []int) ([]domain.UserTraining, error) {
 	query := `
-		SELECT ut.id, t.name, t.description, ut.date, ut.time_start, ut.time_end
-		FROM trainings t
-		JOIN users_trainings ut ON t.id = ut.training_id
-		WHERE ut.id = ANY($1)
-		ORDER BY ut.date, ut.time_start
+	SELECT ut.id, t.name, t.description, ut.date, ut.time_start, ut.time_end,
+	       e.id, e.name, e.muscle, e.additional_muscle, e.type, e.equipment, e.difficulty,
+	       e.photos, ute.sets, ute.reps, ute.weight, ute.status, te.step
+	FROM users_trainings ut
+		JOIN trainings t ON t.id = ut.training_id
+		JOIN user_trainings_exercises ute ON ute.users_trainings_id = ut.id
+		JOIN exercises e ON e.id = ute.exercise_id
+		JOIN trainings_exercises te ON te.training_id = t.id AND te.exercise_id = e.id
+	WHERE ut.id = ANY($1)
+	ORDER BY ut.date, ut.time_start, te.step
 	`
 	rows, err := t.db.QueryContext(ctx, query, pq.Array(userTrainingIDs))
 	if err != nil {
@@ -361,101 +340,75 @@ func (t trainingRepo) GetTrainingsDate(ctx context.Context, userTrainingIDs []in
 	}
 	defer rows.Close()
 
+	trainingMap := make(map[int]*domain.UserTraining)
+
+	var training domain.UserTraining
 	for rows.Next() {
-		var trainingDate domain.TrainingDate
-		err := rows.Scan(&trainingDate.ID, &trainingDate.Name, &trainingDate.Description,
-			&trainingDate.Date, &trainingDate.TimeStart, &trainingDate.TimeEnd)
+		var exercise domain.Exercise
+
+		err := rows.Scan(&training.ID, &training.Name, &training.Description, &training.Date, &training.TimeStart, &training.TimeEnd,
+			&exercise.ID, &exercise.Name, &exercise.Muscle, &exercise.AdditionalMuscle, &exercise.Type, &exercise.Equipment, &exercise.Difficulty,
+			pq.Array(&exercise.Photos), &exercise.Sets, &exercise.Reps, &exercise.Weight, &exercise.Status, &exercise.Step)
 		if err != nil {
 			return nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
 		}
 
-		// Получение информации об упражнениях для каждой тренировки
-		exerciseQuery := `
-			SELECT e.id, e.name, e.muscle, e.additional_muscle, e.type, e.equipment, e.difficulty, e.photos,
-			       te.sets, te.reps, te.weight, ute.status
-			FROM user_trainings_exercises ute
-			JOIN trainings_exercises te ON ute.trainings_exercises_id = te.id
-			JOIN exercises e ON te.exercise_id = e.id
-			WHERE ute.users_trainings_id = $1
-		`
-		exerciseRows, err := t.db.QueryContext(ctx, exerciseQuery, trainingDate.ID)
-		if err != nil {
-			return nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
-		}
-		defer exerciseRows.Close()
-
-		for exerciseRows.Next() {
-			var exercise domain.Exercise
-			err := exerciseRows.Scan(&exercise.ID, &exercise.Name, &exercise.Muscle, &exercise.AdditionalMuscle, &exercise.Type,
-				&exercise.Equipment, &exercise.Difficulty, pq.Array(&exercise.Photos),
-				&exercise.Sets, &exercise.Reps, &exercise.Weight, &exercise.Status)
-			if err != nil {
-				return nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
-			}
-
-			trainingDate.Exercises = append(trainingDate.Exercises, exercise)
+		if _, exists := trainingMap[training.ID]; !exists {
+			trainingMap[training.ID] = &training
 		}
 
-		if err = exerciseRows.Err(); err != nil {
-			return nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
-		}
-
-		trainingDates = append(trainingDates, trainingDate)
+		trainingMap[training.ID].Exercises = append(trainingMap[training.ID].Exercises, exercise)
 	}
 
 	if err = rows.Err(); err != nil {
 		return nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
 	}
 
-	return trainingDates, nil
+	var userTrainings []domain.UserTraining
+	for _, userTraining := range trainingMap {
+		userTrainings = append(userTrainings, *userTraining)
+	}
+
+	return userTrainings, nil
 }
 
 func (t trainingRepo) GetTraining(ctx context.Context, trainingID int) (domain.Training, error) {
 	var training domain.Training
 
-	// Получение основной информации о тренировке
 	query := `
-		SELECT id, name, description
-		FROM trainings
-		WHERE id = $1
+	SELECT t.id, t.name, t.description,
+	       e.id, e.name, e.muscle, e.additional_muscle, e.type, e.equipment, e.difficulty, e.photos, te.step
+	FROM trainings t
+	JOIN trainings_exercises te ON t.id = te.training_id
+	JOIN exercises e ON te.exercise_id = e.id
+	WHERE t.id = $1
+	ORDER BY te.step
 	`
-	err := t.db.QueryRowContext(ctx, query, trainingID).Scan(&training.ID, &training.Name, &training.Description)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return domain.Training{}, errs.ErrNoTraining
-		}
-		return domain.Training{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
-	}
-
-	// Получение информации об упражнениях
-	exerciseQuery := `
-		SELECT e.id, e.name, e.muscle, e.additional_muscle, e.type, e.equipment, e.difficulty, e.photos, te.sets, te.reps, te.weight
-		FROM trainings_exercises te
-		JOIN exercises e ON te.exercise_id = e.id
-		WHERE te.training_id = $1
-	`
-	rows, err := t.db.QueryContext(ctx, exerciseQuery, trainingID)
+	rows, err := t.db.QueryContext(ctx, query, trainingID)
 	if err != nil {
 		return domain.Training{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var exercise domain.Exercise
-		err := rows.Scan(&exercise.ID, &exercise.Name, &exercise.Muscle, &exercise.AdditionalMuscle, &exercise.Type,
-			&exercise.Equipment, &exercise.Difficulty, pq.Array(&exercise.Photos),
-			&exercise.Sets, &exercise.Reps, &exercise.Weight)
+		var exercise domain.ExerciseBaseStep
+		err := rows.Scan(&training.ID, &training.Name, &training.Description,
+			&exercise.ID, &exercise.Name, &exercise.Muscle, &exercise.AdditionalMuscle, &exercise.Type,
+			&exercise.Equipment, &exercise.Difficulty, pq.Array(&exercise.Photos), &exercise.Step,
+		)
 		if err != nil {
 			return domain.Training{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
 		}
-
-		exercise.Status = false
 
 		training.Exercises = append(training.Exercises, exercise)
 	}
 
 	if err = rows.Err(); err != nil {
 		return domain.Training{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
+	}
+
+	if len(training.Exercises) == 0 {
+		return domain.Training{}, errs.ErrNoTraining
 	}
 
 	return training, nil
@@ -481,39 +434,17 @@ func (t trainingRepo) ScheduleTraining(ctx context.Context, training domain.Sche
 		return 0, nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
 	}
 
-	// Получение идентификаторов упражнений для тренировки
-	exerciseQuery := `
-		SELECT id
-		FROM trainings_exercises
-		WHERE training_id = $1`
-	rows, err := tx.QueryContext(ctx, exerciseQuery, training.TrainingID)
-	if err != nil {
-		tx.Rollback()
-		return 0, nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
-	}
-	defer rows.Close()
-
-	var trainingExerciseIDs []int
-	for rows.Next() {
-		var trainingExerciseID int
-		if err := rows.Scan(&trainingExerciseID); err != nil {
-			tx.Rollback()
-			return 0, nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
-		}
-		trainingExerciseIDs = append(trainingExerciseIDs, trainingExerciseID)
-	}
-
 	// Вставка записей в таблицу user_trainings_exercises
-	if len(trainingExerciseIDs) > 0 {
-		valueStrings := make([]string, 0, len(trainingExerciseIDs))
-		valueArgs := make([]interface{}, 0, len(trainingExerciseIDs)*2)
-		for i, trainingExerciseID := range trainingExerciseIDs {
-			valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d)", i*2+1, i*2+2))
-			valueArgs = append(valueArgs, userTrainingID, trainingExerciseID)
+	if len(training.Exercises) > 0 {
+		valueStrings := make([]string, 0, len(training.Exercises))
+		valueArgs := make([]interface{}, 0, len(training.Exercises)*5)
+		for i, exercise := range training.Exercises {
+			valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", i*5+1, i*5+2, i*5+3, i*5+4, i*5+5))
+			valueArgs = append(valueArgs, userTrainingID, exercise.ExerciseID, exercise.Sets, exercise.Reps, exercise.Weight)
 		}
 
-		userTrainingExerciseQuery := fmt.Sprintf("INSERT INTO user_trainings_exercises (users_trainings_id, trainings_exercises_id) VALUES %s RETURNING id", strings.Join(valueStrings, ","))
-		rows, err = tx.QueryContext(ctx, userTrainingExerciseQuery, valueArgs...)
+		userTrainingExerciseQuery := fmt.Sprintf("INSERT INTO user_trainings_exercises (users_trainings_id, exercise_id, sets, reps, weight) VALUES %s RETURNING id", strings.Join(valueStrings, ","))
+		rows, err := tx.QueryContext(ctx, userTrainingExerciseQuery, valueArgs...)
 		if err != nil {
 			tx.Rollback()
 			return 0, nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
@@ -575,4 +506,24 @@ func (t trainingRepo) GetSchedule(ctx context.Context, month, userID int) ([]dom
 	}
 
 	return schedules, nil
+}
+
+func (t trainingRepo) DeleteUserTraining(ctx context.Context, trainingID int) error {
+	query := `DELETE FROM trainings WHERE id = $1`
+	_, err := t.db.ExecContext(ctx, query, trainingID)
+	if err != nil {
+		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
+	}
+
+	return nil
+}
+
+func (t trainingRepo) DeleteScheduledTraining(ctx context.Context, userTrainingID int) error {
+	query := `DELETE FROM users_trainings WHERE id = $1 `
+	_, err := t.db.ExecContext(ctx, query, userTrainingID)
+	if err != nil {
+		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
+	}
+
+	return nil
 }

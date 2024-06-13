@@ -327,22 +327,22 @@ func (t TrainingHandler) GetTraining(c *gin.Context) {
 	c.JSON(http.StatusOK, training)
 }
 
-// GetTrainingsDate
+// GetScheduleTrainings
 // @Summary Get Trainings Date
 // @Description Get trainings by user training IDs
 // @Tags Trainings
 // @Accept json
 // @Produce json
 // @Param user_training_ids query []int true "User Training IDs"
-// @Success 200 {object} []dto.TrainingDate "Return trainings with dates"
+// @Success 200 {object} []dto.UserTraining "Return trainings with dates"
 // @Failure 400 {object} responses.MessageResponse "Invalid user training IDs"
 // @Failure 404 {object} responses.MessageResponse "No schedule training with such ID"
 // @Failure 500 "Internal server error"
 // @Router /api/training/date [get]
-func (t TrainingHandler) GetTrainingsDate(c *gin.Context) {
+func (t TrainingHandler) GetScheduleTrainings(c *gin.Context) {
 	userTrainingIDsStr := c.QueryArray("user_training_ids")
 	if len(userTrainingIDsStr) == 0 {
-		c.JSON(http.StatusOK, []dto.TrainingDate{})
+		c.JSON(http.StatusOK, []dto.UserTraining{})
 		return
 	}
 
@@ -358,7 +358,7 @@ func (t TrainingHandler) GetTrainingsDate(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	trainingDates, err := t.service.GetTrainingsDate(ctx, userTrainingIDs)
+	trainingDates, err := t.service.GetScheduleTrainings(ctx, userTrainingIDs)
 	if err != nil {
 		switch {
 		case errors.Is(err, errs.ErrNoTraining):
@@ -441,4 +441,66 @@ func (t TrainingHandler) GetSchedule(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, schedule)
+}
+
+// DeleteUserTraining
+// @Summary Delete User Training
+// @Description Delete a user training
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param training_id path int true "Training ID"
+// @Success 200 "Training deleted successfully"
+// @Failure 400 {object} responses.MessageResponse "Invalid training ID"
+// @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
+// @Failure 500 "Internal server error"
+// @Router /api/training/user/{training_id} [delete]
+func (t TrainingHandler) DeleteUserTraining(c *gin.Context) {
+	trainingIDStr := c.Param("training_id")
+	trainingID, err := strconv.Atoi(trainingIDStr)
+	if err != nil || trainingID <= 0 {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadPath})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	err = t.service.DeleteUserTraining(ctx, trainingID)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+// DeleteScheduledTraining
+// @Summary Delete Scheduled Training
+// @Description Delete a scheduled training for a specific date
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param user_training_id path int true "User Training ID"
+// @Success 200 "Scheduled training deleted successfully"
+// @Failure 400 {object} responses.MessageResponse "Invalid user training ID"
+// @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
+// @Failure 500 "Internal server error"
+// @Router /api/training/schedule/{user_training_id} [delete]
+func (t TrainingHandler) DeleteScheduledTraining(c *gin.Context) {
+	userTrainingIDStr := c.Param("user_training_id")
+	userTrainingID, err := strconv.Atoi(userTrainingIDStr)
+	if err != nil || userTrainingID <= 0 {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadPath})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	err = t.service.DeleteScheduledTraining(ctx, userTrainingID)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }

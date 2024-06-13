@@ -59,7 +59,7 @@ func (t trainingService) GetExercises(ctx context.Context, search string, cursor
 	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
 	defer cancel()
 
-	supersizes, err := t.trainingRepo.GetExercises(ctx, search, cursor)
+	exercises, err := t.trainingRepo.GetExercises(ctx, search, cursor)
 	if err != nil {
 		t.logger.Error().Msg(err.Error())
 		return dto.ExercisePagination{}, err
@@ -67,7 +67,7 @@ func (t trainingService) GetExercises(ctx context.Context, search string, cursor
 
 	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Exercise))
 
-	return t.converter.ExercisePaginationDomainToDTO(supersizes), nil
+	return t.converter.ExercisePaginationDomainToDTO(exercises), nil
 }
 
 func (t trainingService) CreateTrainingBases(ctx context.Context, trainings []domain.TrainingCreateBase) ([]int, error) {
@@ -145,14 +145,14 @@ func (t trainingService) GetTraining(ctx context.Context, trainingID int) (dto.T
 	return t.converter.TrainingDomainToDTO(training), nil
 }
 
-func (t trainingService) GetTrainingsDate(ctx context.Context, userTrainingIDs []int) ([]dto.TrainingDate, error) {
+func (t trainingService) GetScheduleTrainings(ctx context.Context, userTrainingIDs []int) ([]dto.UserTraining, error) {
 	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
 	defer cancel()
 
-	training, err := t.trainingRepo.GetTrainingsDate(ctx, userTrainingIDs)
+	training, err := t.trainingRepo.GetScheduleTrainings(ctx, userTrainingIDs)
 	if err != nil {
 		t.logger.Error().Msg(err.Error())
-		return []dto.TrainingDate{}, err
+		return []dto.UserTraining{}, err
 	}
 
 	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Training, userTrainingIDs))
@@ -188,4 +188,34 @@ func (t trainingService) GetSchedule(ctx context.Context, month, userID int) ([]
 	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Schedule))
 
 	return t.converter.SchedulesDomainToDTO(schedules), nil
+}
+
+func (t trainingService) DeleteUserTraining(ctx context.Context, trainingID int) error {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	err := t.trainingRepo.DeleteUserTraining(ctx, trainingID)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.DeleteObject, log.Training))
+
+	return nil
+}
+
+func (t trainingService) DeleteScheduledTraining(ctx context.Context, userTrainingID int) error {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	err := t.trainingRepo.DeleteScheduledTraining(ctx, userTrainingID)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.DeleteObject, log.Training))
+
+	return nil
 }

@@ -1747,7 +1747,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.TrainingDate"
+                                "$ref": "#/definitions/dto.UserTraining"
                             }
                         }
                     },
@@ -1983,6 +1983,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/training/schedule/{user_training_id}": {
+            "delete": {
+                "description": "Delete a scheduled training for a specific date",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Delete Scheduled Training",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User Training ID",
+                        "name": "user_training_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Scheduled training deleted successfully"
+                    },
+                    "400": {
+                        "description": "Invalid user training ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
         "/api/training/user": {
             "get": {
                 "description": "Get user training covers with optional search and user ID filter",
@@ -2026,6 +2070,50 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad query or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/training/user/{training_id}": {
+            "delete": {
+                "description": "Delete a user training",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Delete User Training",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Training ID",
+                        "name": "training_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Training deleted successfully"
+                    },
+                    "400": {
+                        "description": "Invalid training ID",
                         "schema": {
                             "$ref": "#/definitions/responses.MessageResponse"
                         }
@@ -2539,6 +2627,9 @@ const docTemplate = `{
                 "status": {
                     "type": "boolean"
                 },
+                "step": {
+                    "type": "integer"
+                },
                 "type": {
                     "type": "string"
                 },
@@ -2579,23 +2670,38 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ExerciseCreate": {
+        "dto.ExerciseBaseStep": {
             "type": "object",
             "properties": {
+                "additionalMuscle": {
+                    "type": "string"
+                },
+                "difficulty": {
+                    "type": "string"
+                },
+                "equipment": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
-                "reps": {
+                "muscle": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "step": {
                     "type": "integer"
                 },
-                "sets": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "boolean"
-                },
-                "weight": {
-                    "type": "integer"
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -2628,6 +2734,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ExerciseDetail": {
+            "type": "object",
+            "properties": {
+                "exercise_id": {
+                    "type": "integer"
+                },
+                "reps": {
+                    "type": "integer"
+                },
+                "sets": {
+                    "type": "integer"
+                },
+                "weight": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.ExercisePagination": {
             "type": "object",
             "properties": {
@@ -2647,6 +2770,17 @@ const docTemplate = `{
             "properties": {
                 "status": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.ExerciseStep": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "step": {
+                    "type": "integer"
                 }
             }
         },
@@ -2709,6 +2843,12 @@ const docTemplate = `{
             "properties": {
                 "date": {
                     "type": "string"
+                },
+                "exercises": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ExerciseDetail"
+                    }
                 },
                 "id": {
                     "type": "integer"
@@ -3022,7 +3162,7 @@ const docTemplate = `{
                 "exercises": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.Exercise"
+                        "$ref": "#/definitions/dto.ExerciseBaseStep"
                     }
                 },
                 "id": {
@@ -3073,7 +3213,7 @@ const docTemplate = `{
                 "exercises": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.ExerciseCreate"
+                        "$ref": "#/definitions/dto.ExerciseStep"
                     }
                 },
                 "name": {
@@ -3094,35 +3234,6 @@ const docTemplate = `{
                     }
                 },
                 "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.TrainingDate": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "exercises": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.Exercise"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "time_end": {
-                    "type": "string"
-                },
-                "time_start": {
                     "type": "string"
                 }
             }
@@ -3262,6 +3373,35 @@ const docTemplate = `{
                         1,
                         2
                     ]
+                }
+            }
+        },
+        "dto.UserTraining": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "exercises": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Exercise"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "time_end": {
+                    "type": "string"
+                },
+                "time_start": {
+                    "type": "string"
                 }
             }
         },
