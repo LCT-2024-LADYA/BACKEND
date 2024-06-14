@@ -19,7 +19,7 @@ type ExerciseBase struct {
 
 type ExerciseBaseStep struct {
 	ExerciseBase
-	Step int
+	Step int `json:"step"`
 }
 
 type Exercise struct {
@@ -71,10 +71,10 @@ type Training struct {
 
 type UserTraining struct {
 	Training
-	Exercises []Exercise
-	Date      time.Time `json:"date"`
-	TimeStart time.Time `json:"time_start"`
-	TimeEnd   time.Time `json:"time_end"`
+	Exercises []Exercise `json:"exercises"`
+	Date      time.Time  `json:"date"`
+	TimeStart time.Time  `json:"time_start"`
+	TimeEnd   time.Time  `json:"time_end"`
 }
 
 type ExerciseDetail struct {
@@ -84,11 +84,11 @@ type ExerciseDetail struct {
 	Weight     int `json:"weight"`
 }
 type ScheduleTraining struct {
-	TrainingID int       `json:"id"`
-	Date       time.Time `json:"date"`
-	TimeStart  time.Time `json:"time_start"`
-	TimeEnd    time.Time `json:"time_end"`
-	Exercises  []ExerciseDetail
+	TrainingID int              `json:"id"`
+	Date       time.Time        `json:"date"`
+	TimeStart  time.Time        `json:"time_start"`
+	TimeEnd    time.Time        `json:"time_end"`
+	Exercises  []ExerciseDetail `json:"exercises"`
 }
 
 type Schedule struct {
