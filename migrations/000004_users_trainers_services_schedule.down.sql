@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS users_trainers_services;

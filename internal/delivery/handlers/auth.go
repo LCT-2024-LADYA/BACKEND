@@ -77,6 +77,7 @@ func (a AuthHandler) RegisterUser(c *gin.Context) {
 		default:
 			c.Status(http.StatusInternalServerError)
 		}
+		return
 	}
 
 	tokens, err := a.tokenService.Create(ctx, id, utils.User)

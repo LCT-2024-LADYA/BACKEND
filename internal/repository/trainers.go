@@ -78,14 +78,14 @@ func (t trainerRepo) GetByID(ctx context.Context, trainerID int) (domain.Trainer
 	selectQuery := `
 	SELECT email, first_name, last_name, age, sex, experience, quote, photo_url,
 		jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
-		jsonb_agg(DISTINCT jsonb_build_object('id', s.id, 'name', s.name)) FILTER (WHERE s.id IS NOT NULL AND s.name IS NOT NULL) AS specializations,
+		jsonb_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) FILTER (WHERE t.id IS NOT NULL AND t.name IS NOT NULL) AS specializations,
 		jsonb_agg(DISTINCT jsonb_build_object('id', serv.id, 'name', serv.name, 'price', serv.price)) FILTER (WHERE serv.id IS NOT NULL AND serv.name IS NOT NULL) AS services,
 		jsonb_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name, 'is_confirmed', a.is_confirmed)) FILTER (WHERE a.id IS NOT NULL AND a.name IS NOT NULL) AS achievements
 	FROM trainers t
 		LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
 		LEFT JOIN roles r ON tr.role_id = r.id
 		LEFT JOIN trainers_specializations ts ON t.id = ts.trainer_id
-		LEFT JOIN specializations s ON ts.specialization_id = s.id
+		LEFT JOIN specializations t ON ts.specialization_id = t.id
 		LEFT JOIN services serv ON t.id = serv.trainer_id
 		LEFT JOIN achievements a ON t.id = a.trainer_id
 	WHERE t.id = $1 GROUP BY t.id`
@@ -129,12 +129,12 @@ func (t trainerRepo) GetCovers(ctx context.Context, filters domain.FiltersTraine
 	selectQuery := `
 	SELECT t.id, t.first_name, t.last_name, t.age, t.sex, t.experience, t.quote, t.photo_url,
 		jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
-		jsonb_agg(DISTINCT jsonb_build_object('id', s.id, 'name', s.name)) FILTER (WHERE s.id IS NOT NULL AND s.name IS NOT NULL) AS specializations
+		jsonb_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) FILTER (WHERE t.id IS NOT NULL AND t.name IS NOT NULL) AS specializations
 	FROM trainers t
 	LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
 	LEFT JOIN roles r ON tr.role_id = r.id
 	LEFT JOIN trainers_specializations ts ON t.id = ts.trainer_id
-	LEFT JOIN specializations s ON ts.specialization_id = s.id
+	LEFT JOIN specializations t ON ts.specialization_id = t.id
 	WHERE t.id IN (
 		SELECT t.id
 		FROM trainers t
@@ -313,7 +313,7 @@ func (t trainerRepo) UpdateRoles(ctx context.Context, trainerID int, roleIDs []i
 			valueArgs = append(valueArgs, id)
 		}
 
-		addQuery := fmt.Sprintf("INSERT INTO trainers_roles (trainer_id, role_id) VALUES %s", strings.Join(valueStrings, ","))
+		addQuery := fmt.Sprintf("INSERT INTO trainers_roles (trainer_id, role_id) VALUES %t", strings.Join(valueStrings, ","))
 		res, err := tx.ExecContext(ctx, addQuery, valueArgs...)
 		if err != nil {
 			if rbErr := tx.Rollback(); rbErr != nil {
@@ -388,7 +388,7 @@ func (t trainerRepo) UpdateSpecializations(ctx context.Context, trainerID int, s
 			valueArgs = append(valueArgs, id)
 		}
 
-		addQuery := fmt.Sprintf("INSERT INTO trainers_specializations (trainer_id, specialization_id) VALUES %s", strings.Join(valueStrings, ","))
+		addQuery := fmt.Sprintf("INSERT INTO trainers_specializations (trainer_id, specialization_id) VALUES %t", strings.Join(valueStrings, ","))
 		res, err := tx.ExecContext(ctx, addQuery, valueArgs...)
 		if err != nil {
 			if rbErr := tx.Rollback(); rbErr != nil {
@@ -641,6 +641,290 @@ func (t trainerRepo) DeleteAchievement(ctx context.Context, trainerID, achieveme
 
 	if err = tx.Commit(); err != nil {
 		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
+	}
+
+	return nil
+}
+
+// Trainers Users Services
+
+func (t trainerRepo) CreateServiceUser(ctx context.Context, service domain.UserTrainerServiceCreate) (int, error) {
+	var createdID int
+
+	createQuery := `INSERT INTO users_trainers_services (user_id, trainer_id, service_id) VALUES ($1, $2, $3) RETURNING id`
+
+	err := t.db.QueryRowContext(ctx, createQuery, service.UserID, service.TrainerID, service.ServiceID).Scan(&createdID)
+	if err != nil {
+		return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+	}
+
+	return createdID, nil
+}
+
+func (t trainerRepo) Schedule(ctx context.Context, schedule domain.ScheduleService) (int, error) {
+	var createdID int
+
+	createQuery := `INSERT INTO trainer_users_trainers_services (users_trainers_services_id, date, time_start, time_end) VALUES ($1, $2, $3, $4) RETURNING id`
+
+	err := t.db.QueryRowContext(ctx, createQuery, schedule.ScheduleID, schedule.Date, schedule.TimeStart, schedule.TimeEnd).Scan(&createdID)
+	if err != nil {
+		return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+	}
+
+	return createdID, nil
+}
+
+func (t trainerRepo) GetSchedule(ctx context.Context, month int) ([]domain.Schedule, error) {
+	var schedules []domain.Schedule
+
+	query := `
+		SELECT date, array_agg(id) AS training_ids
+		FROM trainer_users_trainers_services
+		WHERE EXTRACT(MONTH FROM date) = $1
+		GROUP BY date
+		ORDER BY date
+	`
+	rows, err := t.db.QueryContext(ctx, query, month)
+	if err != nil {
+		return nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var schedule domain.Schedule
+		var trainingIDs pq.Int64Array
+		err := rows.Scan(&schedule.Date, &trainingIDs)
+		if err != nil {
+			return nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+		}
+
+		// Преобразование pq.Int64Array в []int
+		schedule.TrainingIDs = make([]int, len(trainingIDs))
+		for i, id := range trainingIDs {
+			schedule.TrainingIDs[i] = int(id)
+		}
+
+		schedules = append(schedules, schedule)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
+	}
+
+	return schedules, nil
+}
+
+func (t trainerRepo) DeleteScheduled(ctx context.Context, scheduleID int) error {
+	query := `DELETE FROM trainer_users_trainers_services WHERE id = $1`
+
+	_, err := t.db.ExecContext(ctx, query, scheduleID)
+	if err != nil {
+		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
+	}
+
+	return nil
+}
+
+func (t trainerRepo) GetUserServices(ctx context.Context, trainerID, cursor int) (domain.ServiceUserPagination, error) {
+
+	query := `
+	SELECT uts.id, uts.user_id, uts.trainer_id, uts.service_id, uts.is_payed, uts.trainer_confirm, uts.user_confirm,
+	       t.id, t.name, t.price, u.id, u.first_name, u.last_name, u.age, u.sex, u.photo_url
+	FROM users_trainers_services uts
+		JOIN users u ON uts.user_id = u.id
+		JOIN services t ON uts.service_id = t.id
+	WHERE uts.trainer_id = $1 AND uts.id >= $2 LIMIT $3`
+
+	rows, err := t.db.QueryContext(ctx, query, trainerID, cursor, t.entitiesPerRequest+1)
+	if err != nil {
+		return domain.ServiceUserPagination{}, err
+	}
+	defer rows.Close()
+
+	var services []domain.ServiceUser
+	for rows.Next() {
+		var service domain.ServiceUser
+
+		err := rows.Scan(&service.ID, &service.UserID, &service.TrainerID, &service.ServiceID, &service.IsPayed, &service.TrainerConfirm, &service.UserConfirm,
+			&service.Service.ID, &service.Service.Name, &service.Service.Price, &service.User.ID, &service.User.FirstName, &service.User.LastName,
+			&service.User.Age, &service.User.Sex, &service.User.PhotoUrl)
+		if err != nil {
+			return domain.ServiceUserPagination{}, err
+		}
+
+		services = append(services, service)
+	}
+
+	if err = rows.Err(); err != nil {
+		return domain.ServiceUserPagination{}, err
+	}
+
+	var nextCursor int
+	if len(services) == t.entitiesPerRequest+1 {
+		nextCursor = services[t.entitiesPerRequest].ID
+		services = services[:t.entitiesPerRequest]
+	}
+
+	return domain.ServiceUserPagination{
+		Services: services,
+		Cursor:   nextCursor,
+	}, nil
+}
+
+func (t trainerRepo) GetSchedulesByIDs(ctx context.Context, scheduleIDs []int) ([]domain.ScheduleServiceUser, error) {
+	query := `
+	SELECT uts.id, uts.user_id, uts.trainer_id, uts.service_id, uts.is_payed, uts.trainer_confirm, uts.user_confirm,
+	       t.id, t.name, t.price, u.id, u.first_name, u.last_name, u.age, u.sex, u.photo_url,
+	       tuts.id, tuts.date, tuts.time_start, tuts.time_end
+	FROM trainer_users_trainers_services tuts
+		JOIN users_trainers_services uts ON tuts.users_trainers_services_id = uts.id
+		JOIN users u ON uts.user_id = u.id
+		JOIN services t ON uts.service_id = t.id
+	WHERE tuts.id = ANY($1)`
+
+	rows, err := t.db.QueryContext(ctx, query, pq.Array(scheduleIDs))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var services []domain.ScheduleServiceUser
+	for rows.Next() {
+		var service domain.ScheduleServiceUser
+
+		err := rows.Scan(&service.ID, &service.UserID, &service.TrainerID, &service.ScheduleID, &service.IsPayed, &service.TrainerConfirm, &service.UserConfirm,
+			&service.Service.ID, &service.Service.Name, &service.Service.Price, &service.User.ID, &service.User.FirstName, &service.User.LastName,
+			&service.User.Age, &service.User.Sex, &service.User.PhotoUrl, &service.ScheduleID, &service.Date, &service.TimeStart, &service.TimeEnd)
+		if err != nil {
+			return nil, err
+		}
+
+		services = append(services, service)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return services, nil
+}
+
+func (t trainerRepo) GetTrainerServices(ctx context.Context, userID, cursor int) (domain.ServiceTrainerPagination, error) {
+	query := `
+	SELECT uts.id, uts.user_id, uts.trainer_id, uts.service_id, uts.is_payed, uts.trainer_confirm, uts.user_confirm,
+		t.id, t.name, t.price, t.id, t.first_name, t.last_name, t.age, t.sex, t.experience, t.quote, t.photo_url,
+		jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
+		jsonb_agg(DISTINCT jsonb_build_object('id', sp.id, 'name', sp.name)) FILTER (WHERE sp.id IS NOT NULL AND sp.name IS NOT NULL) AS specializations
+	FROM users_trainers_services uts
+		JOIN trainers t ON uts.trainer_id = t.id
+		JOIN services t ON uts.service_id = t.id
+		LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
+		LEFT JOIN roles r ON tr.role_id = r.id
+		LEFT JOIN trainers_specializations ts ON t.id = ts.trainer_id
+		LEFT JOIN specializations sp ON ts.specialization_id = sp.id
+	WHERE uts.user_id = $1 AND uts.id >= $2
+	GROUP BY uts.id, t.id, t.id
+	LIMIT $3`
+
+	rows, err := t.db.QueryContext(ctx, query, userID, cursor, t.entitiesPerRequest+1)
+	if err != nil {
+		return domain.ServiceTrainerPagination{}, err
+	}
+	defer rows.Close()
+
+	var services []domain.ServiceTrainer
+	for rows.Next() {
+		var service domain.ServiceTrainer
+		var roles, specializations []byte
+
+		err := rows.Scan(&service.ID, &service.UserID, &service.TrainerID, &service.ServiceID, &service.IsPayed, &service.TrainerConfirm, &service.UserConfirm,
+			&service.Service.ID, &service.Service.Name, &service.Service.Price, &service.Trainer.ID, &service.Trainer.FirstName, &service.Trainer.LastName,
+			&service.Trainer.Age, &service.Trainer.Sex, &service.Trainer.Experience, &service.Trainer.Quote, &service.Trainer.PhotoUrl, &roles, &specializations)
+		if err != nil {
+			return domain.ServiceTrainerPagination{}, err
+		}
+
+		if len(roles) > 0 {
+			if err := json.Unmarshal(roles, &service.Trainer.Roles); err != nil {
+				return domain.ServiceTrainerPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.JsonErr, Err: err})
+			}
+		}
+		if len(specializations) > 0 {
+			if err := json.Unmarshal(specializations, &service.Trainer.Specializations); err != nil {
+				return domain.ServiceTrainerPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.JsonErr, Err: err})
+			}
+		}
+
+		services = append(services, service)
+	}
+
+	if err = rows.Err(); err != nil {
+		return domain.ServiceTrainerPagination{}, err
+	}
+
+	var nextCursor int
+	if len(services) == t.entitiesPerRequest+1 {
+		nextCursor = services[t.entitiesPerRequest].ID
+		services = services[:t.entitiesPerRequest]
+	}
+
+	return domain.ServiceTrainerPagination{
+		Services: services,
+		Cursor:   nextCursor,
+	}, nil
+}
+
+func (t trainerRepo) UpdateStatus(ctx context.Context, field string, serviceID int, status bool) error {
+	tx, err := t.db.Beginx()
+	if err != nil {
+		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.TransactionErr, Err: err})
+	}
+
+	updateQuery := fmt.Sprintf("UPDATE users_trainers_services SET %t = $1 WHERE id = $2", field)
+
+	res, err := tx.ExecContext(ctx, updateQuery, status, serviceID)
+	if err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return customerr.ErrNormalizer(
+				customerr.ErrorPair{Message: customerr.ExecErr, Err: err},
+				customerr.ErrorPair{Message: customerr.RollbackErr, Err: rbErr},
+			)
+		}
+		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return customerr.ErrNormalizer(
+				customerr.ErrorPair{Message: customerr.RowsErr, Err: err},
+				customerr.ErrorPair{Message: customerr.RollbackErr, Err: rbErr},
+			)
+		}
+		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
+	}
+	if count != 1 {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return customerr.ErrNormalizer(
+				customerr.ErrorPair{Message: customerr.RowsErr, Err: fmt.Errorf(customerr.CountErr, 1, count)},
+				customerr.ErrorPair{Message: customerr.RollbackErr, Err: rbErr},
+			)
+		}
+		return errs.ErrNoService
+	}
+
+	if err = tx.Commit(); err != nil {
+		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
+	}
+
+	return nil
+}
+
+func (t trainerRepo) DeleteServiceUser(ctx context.Context, serviceID int) error {
+	query := `DELETE FROM users_trainers_services WHERE id = $1`
+
+	_, err := t.db.ExecContext(ctx, query, serviceID)
+	if err != nil {
+		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
 	}
 
 	return nil

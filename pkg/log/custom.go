@@ -18,6 +18,7 @@ const (
 const (
 	User     = "user"
 	Trainer  = "trainer"
+	Service  = "service"
 	Exercise = "exercise"
 	Training = "training"
 	Schedule = "schedule"

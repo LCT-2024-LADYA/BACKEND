@@ -3,7 +3,6 @@ package converters
 import (
 	"gopkg.in/guregu/null.v3"
 	"strconv"
-	"time"
 )
 
 func getStringPointer(s null.String) *string {
@@ -62,9 +61,10 @@ func getNullBool(b *bool) null.Bool {
 	return null.NewBool(*b, true)
 }
 
-func getNullTime(t *time.Time) null.Time {
-	if t == nil {
-		return null.NewTime(time.Time{}, false)
+func getBoolPointer(b null.Bool) *bool {
+	if b.Valid {
+		a := b.Bool
+		return &a
 	}
-	return null.NewTime(*t, true)
+	return nil
 }

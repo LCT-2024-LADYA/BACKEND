@@ -44,6 +44,18 @@ type Trainers interface {
 	DeleteAchievement(ctx context.Context, trainerID, achievementID int) error
 }
 
+type UserTrainerServices interface {
+	Create(ctx context.Context, service domain.UserTrainerServiceCreate) (int, error)
+	Schedule(ctx context.Context, schedule domain.ScheduleService) (int, error)
+	GetSchedule(ctx context.Context, month, trainerID int) ([]dto.Schedule, error)
+	GetSchedulesByIDs(ctx context.Context, scheduleIDs []int) ([]dto.ScheduleServiceUser, error)
+	DeleteScheduled(ctx context.Context, scheduleID int) error
+	GetUserServices(ctx context.Context, trainerID, cursor int) (dto.ServiceUserPagination, error)
+	GetTrainerServices(ctx context.Context, userID, cursor int) (dto.ServiceTrainerPagination, error)
+	UpdateStatus(ctx context.Context, field string, serviceID int, status bool) error
+	Delete(ctx context.Context, serviceID int) error
+}
+
 type Tokens interface {
 	Create(ctx context.Context, userID int, userType string) (responses.TokenResponse, error)
 	Refresh(ctx context.Context, refreshToken string) (responses.TokenResponse, error)

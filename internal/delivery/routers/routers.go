@@ -29,6 +29,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	trainerRepo := repository.InitTrainerRepo(db, entitiesPerRequest)
 	specializationRepo := repository.InitBaseRepo(db, repository.SpecializationTable)
 	roleRepo := repository.InitBaseRepo(db, repository.RoleTable)
+	serviceRepo := repository.InitUserTrainerServicesRepo(db, entitiesPerRequest)
 	trainingRepo := repository.InitTrainingRepo(db, entitiesPerRequest)
 	chatRepo := repository.InitChatRepo(db, entitiesPerRequest)
 
@@ -38,6 +39,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	tokenService := services.InitTokenService(jwtUtil, session)
 	specializationService := services.InitBaseService(specializationRepo, dbResponseTime, logger)
 	roleService := services.InitBaseService(roleRepo, dbResponseTime, logger)
+	serviceService := services.InitUsersTrainersServicesService(serviceRepo, dbResponseTime, logger)
 	trainingService := services.InitTrainingService(trainingRepo, dbResponseTime, logger)
 	chatService := services.InitChatService(chatRepo, dbResponseTime, logger)
 
@@ -47,6 +49,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	trainerHandler := handlers.InitTrainerHandler(trainerService, validate)
 	specializationHandler := handlers.InitSpecializationHandler(specializationService, validate)
 	roleHandler := handlers.InitRoleHandler(roleService, validate)
+	userTrainerServiceHandler := handlers.InitUserTrainerServiceHandler(serviceService)
 	trainingHandler := handlers.InitTrainingsHandler(trainingService)
 	chatHandler := handlers.InitChatHandler(chatService)
 	serviceHandler := handlers.InitServiceHandler(roleService)
@@ -63,6 +66,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	initTrainerRouter(baseGroup, trainerHandler, trainerMiddleware, adminMiddleware)
 	initRolesRouter(baseGroup, roleHandler, adminMiddleware)
 	initSpecializationsRouter(baseGroup, specializationHandler, adminMiddleware)
+	initUserTrainerServicesRouter(baseGroup, userTrainerServiceHandler, userMiddleware, trainerMiddleware)
 	initTrainingsRouter(baseGroup, trainingHandler, userMiddleware, adminMiddleware)
 	initChatRouter(baseGroup, chatHandler, userMiddleware, trainerMiddleware)
 	initServiceRouter(baseGroup, serviceHandler)
@@ -126,6 +130,20 @@ func initSpecializationsRouter(group *gin.RouterGroup, specializationHandler *ha
 	specializationGroup.POST("", adminMiddleware, specializationHandler.CreateSpecialization)
 	specializationGroup.GET("", specializationHandler.GetSpecializations)
 	specializationGroup.DELETE("", adminMiddleware, specializationHandler.DeleteSpecializations)
+}
+
+func initUserTrainerServicesRouter(group *gin.RouterGroup, serviceHandler *handlers.UserTrainerServiceHandler, userMiddleware gin.HandlerFunc, trainerMiddleware gin.HandlerFunc) {
+	serviceGroup := group.Group("/service")
+
+	serviceGroup.POST("", trainerMiddleware, serviceHandler.CreateService)
+	serviceGroup.POST("schedule", serviceHandler.ScheduleService)
+	serviceGroup.GET("schedule/:month", trainerMiddleware, serviceHandler.GetSchedule)
+	serviceGroup.GET("schedule", serviceHandler.GetSchedulesByIDs)
+	serviceGroup.DELETE("schedule/:schedule_id", serviceHandler.DeleteScheduled)
+	serviceGroup.GET("trainer", trainerMiddleware, serviceHandler.GetTrainerServices)
+	serviceGroup.GET("user", userMiddleware, serviceHandler.GetUserServices)
+	serviceGroup.PUT("status/:service_id", serviceHandler.UpdateStatus)
+	serviceGroup.DELETE(":service_id", serviceHandler.DeleteService)
 }
 
 func initServiceRouter(group *gin.RouterGroup, serviceHandler *handlers.ServiceHandler) {

@@ -231,6 +231,46 @@ definitions:
           type: integer
         type: array
     type: object
+  dto.ScheduleService:
+    properties:
+      date:
+        type: string
+      schedule_id:
+        type: integer
+      time_end:
+        type: string
+      time_start:
+        type: string
+    type: object
+  dto.ScheduleServiceUser:
+    properties:
+      date:
+        type: string
+      id:
+        type: integer
+      is_payed:
+        type: boolean
+      schedule_id:
+        type: integer
+      service:
+        $ref: '#/definitions/dto.BasePrice'
+      service_id:
+        type: integer
+      time_end:
+        type: string
+      time_start:
+        type: string
+      trainer_confirm:
+        type: boolean
+      trainer_id:
+        type: integer
+      user:
+        $ref: '#/definitions/dto.UserCover'
+      user_confirm:
+        type: boolean
+      user_id:
+        type: integer
+    type: object
   dto.ScheduleTraining:
     properties:
       date:
@@ -259,6 +299,36 @@ definitions:
     required:
     - name
     type: object
+  dto.ServiceTrainer:
+    properties:
+      id:
+        type: integer
+      is_payed:
+        type: boolean
+      service:
+        $ref: '#/definitions/dto.BasePrice'
+      service_id:
+        type: integer
+      trainer:
+        $ref: '#/definitions/dto.TrainerCover'
+      trainer_confirm:
+        type: boolean
+      trainer_id:
+        type: integer
+      user_confirm:
+        type: boolean
+      user_id:
+        type: integer
+    type: object
+  dto.ServiceTrainerPagination:
+    properties:
+      cursor:
+        type: integer
+      objects:
+        items:
+          $ref: '#/definitions/dto.ServiceTrainer'
+        type: array
+    type: object
   dto.ServiceUpdate:
     properties:
       id:
@@ -275,6 +345,36 @@ definitions:
     required:
     - id
     - name
+    type: object
+  dto.ServiceUser:
+    properties:
+      id:
+        type: integer
+      is_payed:
+        type: boolean
+      service:
+        $ref: '#/definitions/dto.BasePrice'
+      service_id:
+        type: integer
+      trainer_confirm:
+        type: boolean
+      trainer_id:
+        type: integer
+      user:
+        $ref: '#/definitions/dto.UserCover'
+      user_confirm:
+        type: boolean
+      user_id:
+        type: integer
+    type: object
+  dto.ServiceUserPagination:
+    properties:
+      cursor:
+        type: integer
+      objects:
+        items:
+          $ref: '#/definitions/dto.ServiceUser'
+        type: array
     type: object
   dto.Trainer:
     properties:
@@ -517,6 +617,13 @@ definitions:
       name:
         type: string
     type: object
+  dto.UpdateStatusService:
+    properties:
+      status:
+        type: boolean
+      type:
+        type: integer
+    type: object
   dto.User:
     properties:
       age:
@@ -618,6 +725,13 @@ definitions:
     - last_name
     - password
     - sex
+    type: object
+  dto.UserTrainerServiceCreateTrainer:
+    properties:
+      service_id:
+        type: integer
+      user_id:
+        type: integer
     type: object
   dto.UserTraining:
     properties:
@@ -1122,6 +1236,43 @@ paths:
       summary: Create Role
       tags:
       - Roles
+  /api/service:
+    post:
+      consumes:
+      - application/json
+      description: Create a new service between user and trainer
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Service data to create
+        in: body
+        name: service
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserTrainerServiceCreateTrainer'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Service created successfully
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Invalid body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Service
+      tags:
+      - Services
   /api/service/{id}:
     get:
       consumes:
@@ -1151,6 +1302,262 @@ paths:
         "500":
           description: Internal server error
       summary: Get Service by ID
+      tags:
+      - Services
+  /api/service/{service_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a service by its ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: service_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service deleted successfully
+        "400":
+          description: Invalid service ID provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Delete Service
+      tags:
+      - Services
+  /api/service/schedule:
+    get:
+      consumes:
+      - application/json
+      description: Get schedules by an array of schedule IDs
+      parameters:
+      - collectionFormat: csv
+        description: Array of schedule IDs
+        in: query
+        items:
+          type: integer
+        name: schedule_ids
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return schedules for the given IDs
+          schema:
+            items:
+              $ref: '#/definitions/dto.ScheduleServiceUser'
+            type: array
+        "400":
+          description: Invalid query parameters provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Schedules by IDs
+      tags:
+      - Services
+    post:
+      consumes:
+      - application/json
+      description: Schedule a new service between user and trainer
+      parameters:
+      - description: Schedule data to create
+        in: body
+        name: schedule
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ScheduleService'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Schedule created successfully
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Invalid body provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Schedule Service
+      tags:
+      - Services
+  /api/service/schedule/{month}:
+    get:
+      consumes:
+      - application/json
+      description: Get schedule for the specified month
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Month (1-12)
+        in: path
+        name: month
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return schedule for the month
+          schema:
+            items:
+              $ref: '#/definitions/dto.Schedule'
+            type: array
+        "400":
+          description: Invalid month or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Schedule
+      tags:
+      - Services
+  /api/service/schedule/{schedule_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a scheduled service by its ID
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: schedule_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Schedule deleted successfully
+        "400":
+          description: Invalid schedule ID provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Delete Scheduled Service
+      tags:
+      - Services
+  /api/service/status/{service_id}:
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Update the status of a service
+        type = 1 - payment status
+        type = 2 - trainer confirm status
+        type = 3 - user confirm status
+      parameters:
+      - description: Service ID
+        in: path
+        name: service_id
+        required: true
+        type: integer
+      - description: Status data to update
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateStatusService'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status updated successfully
+        "400":
+          description: Invalid body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Update Service Status
+      tags:
+      - Services
+  /api/service/trainer:
+    get:
+      consumes:
+      - application/json
+      description: Get services for a trainer with pagination
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user services with pagination
+          schema:
+            $ref: '#/definitions/dto.ServiceUserPagination'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Trainer Services
+      tags:
+      - Services
+  /api/service/user:
+    get:
+      consumes:
+      - application/json
+      description: Get services for a user with pagination
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of trainer services with pagination
+          schema:
+            $ref: '#/definitions/dto.ServiceTrainerPagination'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get User Services
       tags:
       - Services
   /api/specialization:
