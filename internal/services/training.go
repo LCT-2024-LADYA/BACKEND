@@ -85,19 +85,19 @@ func (t trainingService) CreateTrainingBases(ctx context.Context, trainings []do
 	return id, nil
 }
 
-func (t trainingService) CreateTraining(ctx context.Context, training domain.TrainingCreate) (int, []int, error) {
+func (t trainingService) CreateTraining(ctx context.Context, training domain.TrainingCreate) (int, error) {
 	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
 	defer cancel()
 
-	id, ids, err := t.trainingRepo.CreateTraining(ctx, training)
+	id, err := t.trainingRepo.CreateTraining(ctx, training)
 	if err != nil {
 		t.logger.Error().Msg(err.Error())
-		return 0, []int{}, err
+		return 0, err
 	}
 
 	t.logger.Info().Msg(log.Normalizer(log.CreateObject, log.Training, id))
 
-	return id, ids, nil
+	return id, nil
 }
 
 func (t trainingService) SetExerciseStatus(ctx context.Context, usersTrainingsID, usersExercisesID int, status bool) error {

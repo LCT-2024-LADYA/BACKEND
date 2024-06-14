@@ -179,12 +179,12 @@ func (t trainingRepo) CreateTrainingBases(ctx context.Context, trainings []domai
 	return createdIDs, nil
 }
 
-func (t trainingRepo) CreateTraining(ctx context.Context, training domain.TrainingCreate) (int, []int, error) {
+func (t trainingRepo) CreateTraining(ctx context.Context, training domain.TrainingCreate) (int, error) {
 	var createdID int
 
 	tx, err := t.db.Beginx()
 	if err != nil {
-		return 0, []int{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.TransactionErr, Err: err})
+		return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.TransactionErr, Err: err})
 	}
 
 	// Insert training
@@ -192,11 +192,10 @@ func (t trainingRepo) CreateTraining(ctx context.Context, training domain.Traini
 	err = tx.QueryRowContext(ctx, query, training.Name, training.Description, training.UserID).Scan(&createdID)
 	if err != nil {
 		tx.Rollback()
-		return 0, []int{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
+		return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
 	}
 
 	// Insert exercises for the training and get their IDs
-	var trainingExerciseIDs []int
 	if len(training.Exercises) > 0 {
 		valueStrings := make([]string, 0, len(training.Exercises))
 		valueArgs := make([]interface{}, 0, len(training.Exercises)*3)
@@ -205,29 +204,28 @@ func (t trainingRepo) CreateTraining(ctx context.Context, training domain.Traini
 			valueArgs = append(valueArgs, createdID, exercise.ID, exercise.Step)
 		}
 
-		exerciseQuery := fmt.Sprintf("INSERT INTO trainings_exercises (training_id, exercise_id, step) VALUES %s RETURNING id", strings.Join(valueStrings, ","))
-		rows, err := tx.QueryContext(ctx, exerciseQuery, valueArgs...)
+		exerciseQuery := fmt.Sprintf("INSERT INTO trainings_exercises (training_id, exercise_id, step) VALUES %s", strings.Join(valueStrings, ","))
+		res, err := tx.ExecContext(ctx, exerciseQuery, valueArgs...)
 		if err != nil {
 			tx.Rollback()
-			return 0, []int{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
+			return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
 		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var trainingExerciseID int
-			if err := rows.Scan(&trainingExerciseID); err != nil {
-				tx.Rollback()
-				return 0, []int{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
-			}
-			trainingExerciseIDs = append(trainingExerciseIDs, trainingExerciseID)
+		count, err := res.RowsAffected()
+		if err != nil {
+			tx.Rollback()
+			return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
+		}
+		if int(count) != len(training.Exercises) {
+			tx.Rollback()
+			return 0, errs.ErrNoExercise
 		}
 	}
 
 	if err = tx.Commit(); err != nil {
-		return 0, []int{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
+		return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
 	}
 
-	return createdID, trainingExerciseIDs, nil
+	return createdID, nil
 }
 
 func (t trainingRepo) SetExerciseStatus(ctx context.Context, usersTrainingsID, exerciseID int, status bool) error {

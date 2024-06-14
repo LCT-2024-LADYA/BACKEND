@@ -666,15 +666,6 @@ definitions:
     - last_name
     - sex
     type: object
-  responses.CreatedIDIDsResponse:
-    properties:
-      id:
-        type: integer
-      ids:
-        items:
-          type: integer
-        type: array
-    type: object
   responses.CreatedIDResponse:
     properties:
       id:
@@ -1777,7 +1768,7 @@ paths:
         "201":
           description: Training successfully created
           schema:
-            $ref: '#/definitions/responses.CreatedIDIDsResponse'
+            $ref: '#/definitions/responses.CreatedIDResponse'
         "400":
           description: Bad body or JWT provided
           schema:

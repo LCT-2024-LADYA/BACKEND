@@ -1638,7 +1638,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Training successfully created",
                         "schema": {
-                            "$ref": "#/definitions/responses.CreatedIDIDsResponse"
+                            "$ref": "#/definitions/responses.CreatedIDResponse"
                         }
                     },
                     "400": {
@@ -3439,20 +3439,6 @@ const docTemplate = `{
                         1,
                         2
                     ]
-                }
-            }
-        },
-        "responses.CreatedIDIDsResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
                 }
             }
         },

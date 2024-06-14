@@ -136,7 +136,7 @@ func (t TrainingHandler) CreateTrainingBase(c *gin.Context) {
 // @Produce json
 // @Param access_token header string true "Access token"
 // @Param training body dto.TrainingCreate true "Training data to create"
-// @Success 201 {object} responses.CreatedIDIDsResponse "Training successfully created"
+// @Success 201 {object} responses.CreatedIDResponse "Training successfully created"
 // @Failure 400 {object} responses.MessageResponse "Bad body or JWT provided"
 // @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
 // @Failure 500 "Internal server error"
@@ -153,16 +153,13 @@ func (t TrainingHandler) CreateTraining(c *gin.Context) {
 
 	userID := c.GetInt(middleware.UserID)
 
-	id, ids, err := t.service.CreateTraining(ctx, t.converter.TrainingCreateDTOToDomain(training, userID))
+	id, err := t.service.CreateTraining(ctx, t.converter.TrainingCreateDTOToDomain(training, userID))
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusCreated, responses.CreatedIDIDsResponse{
-		CreatedIDResponse:  responses.CreatedIDResponse{ID: id},
-		CreatedIDsResponse: responses.CreatedIDsResponse{IDs: ids},
-	})
+	c.JSON(http.StatusCreated, responses.CreatedIDResponse{ID: id})
 }
 
 // SetExerciseStatus

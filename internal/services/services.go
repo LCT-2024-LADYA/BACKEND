@@ -53,7 +53,7 @@ type Trainings interface {
 	CreateExercises(ctx context.Context, exercises []domain.ExerciseCreateBase) ([]int, error)
 	GetExercises(ctx context.Context, search string, cursor int) (dto.ExercisePagination, error)
 	CreateTrainingBases(ctx context.Context, trainings []domain.TrainingCreateBase) ([]int, error)
-	CreateTraining(ctx context.Context, training domain.TrainingCreate) (int, []int, error)
+	CreateTraining(ctx context.Context, training domain.TrainingCreate) (int, error)
 	SetExerciseStatus(ctx context.Context, usersTrainingsID, usersExercisesID int, status bool) error
 	GetTrainingCovers(ctx context.Context, search string, userID null.Int, cursor int) (dto.TrainingCoverPagination, error)
 	GetTraining(ctx context.Context, trainingID int) (dto.Training, error)
