@@ -13,8 +13,3 @@ type BaseStatus struct {
 	Base
 	IsConfirmed bool `json:"is_confirmed"`
 }
-
-type BasePrice struct {
-	Base
-	Price int `json:"price"`
-}

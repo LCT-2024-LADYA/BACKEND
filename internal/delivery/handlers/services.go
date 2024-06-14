@@ -32,7 +32,7 @@ func InitServiceHandler(
 // @Accept json
 // @Produce json
 // @Param id path int true "Service ID"
-// @Success 200 {object} dto.BasePrice "Service details"
+// @Success 200 {object} dto.Service "Service details"
 // @Failure 400 {object} responses.MessageResponse "Invalid service ID"
 // @Failure 404 {object} responses.MessageResponse "Service not found"
 // @Failure 500 "Internal server error"

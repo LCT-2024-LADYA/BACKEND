@@ -13,7 +13,7 @@ type UserTrainerServiceCreate struct {
 
 type ServiceUser struct {
 	UserTrainerServiceCreate
-	Service        BasePrice
+	Service        Service
 	User           UserCover
 	ID             int
 	IsPayed        bool
@@ -28,7 +28,7 @@ type ServiceUserPagination struct {
 
 type ServiceTrainer struct {
 	UserTrainerServiceCreate
-	Service        BasePrice
+	Service        Service
 	Trainer        TrainerCover
 	ID             int
 	IsPayed        bool

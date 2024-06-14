@@ -327,7 +327,7 @@ func (t TrainerHandler) CreateService(c *gin.Context) {
 
 	trainerID := c.GetInt(middleware.UserID)
 
-	serviceID, err := t.service.CreateService(ctx, trainerID, service.Name, service.Price)
+	serviceID, err := t.service.CreateService(ctx, t.converter.ServiceCreateDTOToDomain(service, trainerID))
 	if err != nil {
 		switch {
 		case errors.Is(err, errs.ErrAlreadyExist):
@@ -364,7 +364,7 @@ func (t TrainerHandler) UpdateService(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	err := t.service.UpdateService(ctx, service.ID, service.Name, service.Price)
+	err := t.service.UpdateService(ctx, t.converter.ServiceUpdateDTOToDomain(service))
 	if err != nil {
 		switch {
 		case errors.Is(err, errs.ErrNoService):

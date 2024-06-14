@@ -13,8 +13,7 @@ type BaseConverter interface {
 	BasesDomainToDTO(bases []domain.Base) []dto.Base
 	BaseStatusDomainToDTO(base domain.BaseStatus) dto.BaseStatus
 	BasesStatusDomainToDTO(bases []domain.BaseStatus) []dto.BaseStatus
-	BasePriceDomainToDTO(base domain.BasePrice) dto.BasePrice
-	BasesPriceDomainToDTO(bases []domain.BasePrice) []dto.BasePrice
+	ServiceDomainToDTO(service domain.Service) dto.Service
 }
 
 type baseConverter struct{}
@@ -69,19 +68,23 @@ func (b baseConverter) BasesStatusDomainToDTO(bases []domain.BaseStatus) []dto.B
 	return dtoBases
 }
 
-func (b baseConverter) BasePriceDomainToDTO(base domain.BasePrice) dto.BasePrice {
-	return dto.BasePrice{
-		Base:  b.BaseDomainToDTO(base.Base),
-		Price: base.Price,
+func (b baseConverter) ServiceBaseDomainToDTO(service domain.ServiceBase) dto.ServiceBase {
+	return dto.ServiceBase{
+		Name:          service.Name,
+		Price:         service.Price,
+		ProfileAccess: service.ProfileAccess,
 	}
 }
 
-func (b baseConverter) BasesPriceDomainToDTO(bases []domain.BasePrice) []dto.BasePrice {
-	dtoBases := make([]dto.BasePrice, len(bases))
-
-	for i, base := range bases {
-		dtoBases[i] = b.BasePriceDomainToDTO(base)
+func (b baseConverter) ServiceUpdateDomainToDTO(service domain.ServiceUpdate) dto.ServiceUpdate {
+	return dto.ServiceUpdate{
+		ServiceBase: b.ServiceBaseDomainToDTO(service.ServiceBase),
+		ID:          service.ID,
 	}
+}
 
-	return dtoBases
+func (b baseConverter) ServiceDomainToDTO(service domain.Service) dto.Service {
+	return dto.Service{
+		ServiceUpdate: b.ServiceUpdateDomainToDTO(service.ServiceUpdate),
+	}
 }

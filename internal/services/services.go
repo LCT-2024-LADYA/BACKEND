@@ -14,7 +14,7 @@ import (
 type Base interface {
 	Create(ctx context.Context, base domain.BaseBase) (int, error)
 	GetByName(ctx context.Context) ([]dto.Base, error)
-	GetServiceByID(ctx context.Context, id int) (dto.BasePrice, error)
+	GetServiceByID(ctx context.Context, id int) (dto.Service, error)
 	Delete(ctx context.Context, baseIDs []int) error
 }
 
@@ -36,8 +36,8 @@ type Trainers interface {
 	UpdatePhotoUrl(c *gin.Context, newPhoto *multipart.FileHeader, trainerID int) error
 	UpdateRoles(ctx context.Context, trainerID int, roleIDs []int) error
 	UpdateSpecializations(ctx context.Context, trainerID int, specializationIDs []int) error
-	CreateService(ctx context.Context, trainerID int, name string, price int) (int, error)
-	UpdateService(ctx context.Context, serviceID int, name string, price int) error
+	CreateService(ctx context.Context, service domain.ServiceCreate) (int, error)
+	UpdateService(ctx context.Context, service domain.ServiceUpdate) error
 	DeleteService(ctx context.Context, trainerID, serviceID int) error
 	CreateAchievement(ctx context.Context, trainerID int, achievement string) (int, error)
 	UpdateAchievementStatus(ctx context.Context, achievementID int, status bool) error

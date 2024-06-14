@@ -34,19 +34,28 @@ type TrainerCoverPagination struct {
 
 type Trainer struct {
 	TrainerCover
-	Services     []BasePrice  `json:"services"`
+	Services     []Service    `json:"services"`
 	Achievements []BaseStatus `json:"achievements"`
 	Email        string       `json:"email"`
 }
 
+type ServiceBase struct {
+	Name          string `json:"name"`
+	Price         int    `json:"price"`
+	ProfileAccess bool   `json:"profile_access"`
+}
+
 type ServiceCreate struct {
-	Name  string `json:"name" validate:"required,min=2,max=150"`
-	Price int    `json:"price" validate:"omitempty,min=0,max=1000000"`
+	ServiceBase
 }
 
 type ServiceUpdate struct {
-	ServiceCreate
-	ID int `json:"id" validate:"required,min=1"`
+	ServiceBase
+	ID int `json:"id"`
+}
+
+type Service struct {
+	ServiceUpdate
 }
 
 type AchievementCreate struct {

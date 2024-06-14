@@ -114,7 +114,7 @@ func (s usersTrainersServicesRepo) GetUserServices(ctx context.Context, trainerI
 
 	query := `
 	SELECT uts.id, uts.user_id, uts.trainer_id, uts.service_id, uts.is_payed, uts.trainer_confirm, uts.user_confirm,
-	       s.id, s.name, s.price, u.id, u.first_name, u.last_name, u.age, u.sex, u.photo_url
+	       s.id, s.name, s.price, s.profile_access, u.id, u.first_name, u.last_name, u.age, u.sex, u.photo_url
 	FROM users_trainers_services uts
 		JOIN users u ON uts.user_id = u.id
 		JOIN services s ON uts.service_id = s.id
@@ -131,7 +131,7 @@ func (s usersTrainersServicesRepo) GetUserServices(ctx context.Context, trainerI
 		var service domain.ServiceUser
 
 		err := rows.Scan(&service.ID, &service.UserID, &service.TrainerID, &service.ServiceID, &service.IsPayed, &service.TrainerConfirm, &service.UserConfirm,
-			&service.Service.ID, &service.Service.Name, &service.Service.Price, &service.User.ID, &service.User.FirstName, &service.User.LastName,
+			&service.Service.ID, &service.Service.Name, &service.Service.Price, &service.Service.ProfileAccess, &service.User.ID, &service.User.FirstName, &service.User.LastName,
 			&service.User.Age, &service.User.Sex, &service.User.PhotoUrl)
 		if err != nil {
 			return domain.ServiceUserPagination{}, err
@@ -159,7 +159,7 @@ func (s usersTrainersServicesRepo) GetUserServices(ctx context.Context, trainerI
 func (s usersTrainersServicesRepo) GetSchedulesByIDs(ctx context.Context, scheduleIDs []int) ([]domain.ScheduleServiceUser, error) {
 	query := `
 	SELECT uts.id, uts.user_id, uts.trainer_id, uts.service_id, uts.is_payed, uts.trainer_confirm, uts.user_confirm,
-	       s.id, s.name, s.price, u.id, u.first_name, u.last_name, u.age, u.sex, u.photo_url,
+	       s.id, s.name, s.price, s.profile_access, u.id, u.first_name, u.last_name, u.age, u.sex, u.photo_url,
 	       tuts.id, tuts.date, tuts.time_start, tuts.time_end
 	FROM trainer_users_trainers_services tuts
 		JOIN users_trainers_services uts ON tuts.users_trainers_services_id = uts.id
@@ -178,7 +178,7 @@ func (s usersTrainersServicesRepo) GetSchedulesByIDs(ctx context.Context, schedu
 		var service domain.ScheduleServiceUser
 
 		err := rows.Scan(&service.ID, &service.UserID, &service.TrainerID, &service.ScheduleID, &service.IsPayed, &service.TrainerConfirm, &service.UserConfirm,
-			&service.Service.ID, &service.Service.Name, &service.Service.Price, &service.User.ID, &service.User.FirstName, &service.User.LastName,
+			&service.Service.ID, &service.Service.Name, &service.Service.Price, &service.Service.ProfileAccess, &service.User.ID, &service.User.FirstName, &service.User.LastName,
 			&service.User.Age, &service.User.Sex, &service.User.PhotoUrl, &service.ScheduleID, &service.Date, &service.TimeStart, &service.TimeEnd)
 		if err != nil {
 			return nil, err
@@ -197,7 +197,7 @@ func (s usersTrainersServicesRepo) GetSchedulesByIDs(ctx context.Context, schedu
 func (s usersTrainersServicesRepo) GetTrainerServices(ctx context.Context, userID, cursor int) (domain.ServiceTrainerPagination, error) {
 	query := `
 	SELECT uts.id, uts.user_id, uts.trainer_id, uts.service_id, uts.is_payed, uts.trainer_confirm, uts.user_confirm,
-		s.id, s.name, s.price, t.id, t.first_name, t.last_name, t.age, t.sex, t.experience, t.quote, t.photo_url,
+		s.id, s.name, s.price, s.profile_access, t.id, t.first_name, t.last_name, t.age, t.sex, t.experience, t.quote, t.photo_url,
 		jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
 		jsonb_agg(DISTINCT jsonb_build_object('id', sp.id, 'name', sp.name)) FILTER (WHERE sp.id IS NOT NULL AND sp.name IS NOT NULL) AS specializations
 	FROM users_trainers_services uts
@@ -223,7 +223,7 @@ func (s usersTrainersServicesRepo) GetTrainerServices(ctx context.Context, userI
 		var roles, specializations []byte
 
 		err := rows.Scan(&service.ID, &service.UserID, &service.TrainerID, &service.ServiceID, &service.IsPayed, &service.TrainerConfirm, &service.UserConfirm,
-			&service.Service.ID, &service.Service.Name, &service.Service.Price, &service.Trainer.ID, &service.Trainer.FirstName, &service.Trainer.LastName,
+			&service.Service.ID, &service.Service.Name, &service.Service.Price, &service.Service.ProfileAccess, &service.Trainer.ID, &service.Trainer.FirstName, &service.Trainer.LastName,
 			&service.Trainer.Age, &service.Trainer.Sex, &service.Trainer.Experience, &service.Trainer.Quote, &service.Trainer.PhotoUrl, &roles, &specializations)
 		if err != nil {
 			return domain.ServiceTrainerPagination{}, err

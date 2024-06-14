@@ -37,15 +37,6 @@ definitions:
       name:
         type: string
     type: object
-  dto.BasePrice:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-      price:
-        type: integer
-    type: object
   dto.BaseStatus:
     properties:
       id:
@@ -253,7 +244,7 @@ definitions:
       schedule_id:
         type: integer
       service:
-        $ref: '#/definitions/dto.BasePrice'
+        $ref: '#/definitions/dto.Service'
       service_id:
         type: integer
       time_end:
@@ -286,18 +277,25 @@ definitions:
       time_start:
         type: string
     type: object
+  dto.Service:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: integer
+      profile_access:
+        type: boolean
+    type: object
   dto.ServiceCreate:
     properties:
       name:
-        maxLength: 150
-        minLength: 2
         type: string
       price:
-        maximum: 1000000
-        minimum: 0
         type: integer
-    required:
-    - name
+      profile_access:
+        type: boolean
     type: object
   dto.ServiceTrainer:
     properties:
@@ -306,7 +304,7 @@ definitions:
       is_payed:
         type: boolean
       service:
-        $ref: '#/definitions/dto.BasePrice'
+        $ref: '#/definitions/dto.Service'
       service_id:
         type: integer
       trainer:
@@ -332,19 +330,13 @@ definitions:
   dto.ServiceUpdate:
     properties:
       id:
-        minimum: 1
         type: integer
       name:
-        maxLength: 150
-        minLength: 2
         type: string
       price:
-        maximum: 1000000
-        minimum: 0
         type: integer
-    required:
-    - id
-    - name
+      profile_access:
+        type: boolean
     type: object
   dto.ServiceUser:
     properties:
@@ -353,7 +345,7 @@ definitions:
       is_payed:
         type: boolean
       service:
-        $ref: '#/definitions/dto.BasePrice'
+        $ref: '#/definitions/dto.Service'
       service_id:
         type: integer
       trainer_confirm:
@@ -413,7 +405,7 @@ definitions:
         type: array
       services:
         items:
-          $ref: '#/definitions/dto.BasePrice'
+          $ref: '#/definitions/dto.Service'
         type: array
       sex:
         enum:
@@ -1290,7 +1282,7 @@ paths:
         "200":
           description: Service details
           schema:
-            $ref: '#/definitions/dto.BasePrice'
+            $ref: '#/definitions/dto.Service'
         "400":
           description: Invalid service ID
           schema:

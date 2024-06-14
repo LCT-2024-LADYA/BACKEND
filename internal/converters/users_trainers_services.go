@@ -24,14 +24,12 @@ type ServicesConverter interface {
 }
 
 type servicesConverter struct {
-	baseConverter    BaseConverter
 	userConverter    UserConverter
 	trainerConverter TrainerConverter
 }
 
 func InitServiceConverter() ServicesConverter {
 	return &servicesConverter{
-		baseConverter:    InitBaseConverter(),
 		userConverter:    InitUserConverter(),
 		trainerConverter: InitTrainerConverter(),
 	}
@@ -65,7 +63,7 @@ func (s servicesConverter) UserTrainerServiceCreateDomainToDTO(service domain.Us
 func (s servicesConverter) ServiceUserDomainToDTO(service domain.ServiceUser) dto.ServiceUser {
 	return dto.ServiceUser{
 		UserTrainerServiceCreate: s.UserTrainerServiceCreateDomainToDTO(service.UserTrainerServiceCreate),
-		Service:                  s.baseConverter.BasePriceDomainToDTO(service.Service),
+		Service:                  s.trainerConverter.ServiceDomainToDTO(service.Service),
 		User:                     s.userConverter.UserCoverDomainToDTO(service.User),
 		ID:                       service.ID,
 		IsPayed:                  service.IsPayed,
@@ -94,7 +92,7 @@ func (s servicesConverter) ServiceUserPaginationDomainToDTO(service domain.Servi
 func (s servicesConverter) ServiceTrainerDomainToDTO(service domain.ServiceTrainer) dto.ServiceTrainer {
 	return dto.ServiceTrainer{
 		UserTrainerServiceCreate: s.UserTrainerServiceCreateDomainToDTO(service.UserTrainerServiceCreate),
-		Service:                  s.baseConverter.BasePriceDomainToDTO(service.Service),
+		Service:                  s.trainerConverter.ServiceDomainToDTO(service.Service),
 		Trainer:                  s.trainerConverter.TrainerCoverDomainToDTO(service.Trainer),
 		ID:                       service.ID,
 		IsPayed:                  service.IsPayed,

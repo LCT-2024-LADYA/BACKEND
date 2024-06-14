@@ -40,7 +40,27 @@ type TrainerCoverPagination struct {
 
 type Trainer struct {
 	TrainerCover
-	Services     []BasePrice
+	Services     []Service
 	Achievements []BaseStatus
 	Email        string
+}
+
+type ServiceBase struct {
+	Name          string `json:"name"`
+	Price         int    `json:"price"`
+	ProfileAccess bool   `json:"profile_access"`
+}
+
+type ServiceCreate struct {
+	ServiceBase
+	TrainerID int
+}
+
+type ServiceUpdate struct {
+	ServiceBase
+	ID int `json:"id"`
+}
+
+type Service struct {
+	ServiceUpdate
 }

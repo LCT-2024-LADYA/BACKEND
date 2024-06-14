@@ -218,26 +218,26 @@ func (t trainerService) UpdateSpecializations(ctx context.Context, trainerID int
 	return nil
 }
 
-func (t trainerService) CreateService(ctx context.Context, trainerID int, name string, price int) (int, error) {
+func (t trainerService) CreateService(ctx context.Context, service domain.ServiceCreate) (int, error) {
 	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
 	defer cancel()
 
-	createdID, err := t.trainerRepo.CreateService(ctx, trainerID, name, price)
+	createdID, err := t.trainerRepo.CreateService(ctx, service)
 	if err != nil {
 		t.logger.Error().Msg(err.Error())
 		return 0, err
 	}
 
-	t.logger.Info().Msg(log.Normalizer(log.UpdateObject, log.Trainer, trainerID))
+	t.logger.Info().Msg(log.Normalizer(log.UpdateObject, log.Trainer, service.TrainerID))
 
 	return createdID, nil
 }
 
-func (t trainerService) UpdateService(ctx context.Context, serviceID int, name string, price int) error {
+func (t trainerService) UpdateService(ctx context.Context, service domain.ServiceUpdate) error {
 	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
 	defer cancel()
 
-	err := t.trainerRepo.UpdateService(ctx, serviceID, name, price)
+	err := t.trainerRepo.UpdateService(ctx, service)
 	if err != nil {
 		t.logger.Error().Msg(err.Error())
 		return err

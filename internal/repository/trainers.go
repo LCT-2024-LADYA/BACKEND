@@ -79,7 +79,7 @@ func (t trainerRepo) GetByID(ctx context.Context, trainerID int) (domain.Trainer
 	SELECT email, first_name, last_name, age, sex, experience, quote, photo_url,
 		jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
 		jsonb_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) FILTER (WHERE t.id IS NOT NULL AND t.name IS NOT NULL) AS specializations,
-		jsonb_agg(DISTINCT jsonb_build_object('id', serv.id, 'name', serv.name, 'price', serv.price)) FILTER (WHERE serv.id IS NOT NULL AND serv.name IS NOT NULL) AS services,
+		jsonb_agg(DISTINCT jsonb_build_object('id', serv.id, 'name', serv.name, 'price', serv.price, 'profile_access', serv.profile_access)) FILTER (WHERE serv.id IS NOT NULL AND serv.name IS NOT NULL) AS services,
 		jsonb_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name, 'is_confirmed', a.is_confirmed)) FILTER (WHERE a.id IS NOT NULL AND a.name IS NOT NULL) AS achievements
 	FROM trainers t
 		LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
@@ -436,12 +436,12 @@ func (t trainerRepo) UpdateSpecializations(ctx context.Context, trainerID int, s
 	return nil
 }
 
-func (t trainerRepo) CreateService(ctx context.Context, trainerID int, name string, price int) (int, error) {
+func (t trainerRepo) CreateService(ctx context.Context, service domain.ServiceCreate) (int, error) {
 	var createdID int
 
-	query := `INSERT INTO services (trainer_id, name, price) VALUES ($1, $2, $3) RETURNING id`
+	query := `INSERT INTO services (trainer_id, name, price, profile_access) VALUES ($1, $2, $3, $4) RETURNING id`
 
-	err := t.db.QueryRowContext(ctx, query, trainerID, name, price).Scan(&createdID)
+	err := t.db.QueryRowContext(ctx, query, service.TrainerID, service.Name, service.Price, service.ProfileAccess).Scan(&createdID)
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
@@ -453,15 +453,15 @@ func (t trainerRepo) CreateService(ctx context.Context, trainerID int, name stri
 	return createdID, nil
 }
 
-func (t trainerRepo) UpdateService(ctx context.Context, serviceID int, name string, price int) error {
+func (t trainerRepo) UpdateService(ctx context.Context, service domain.ServiceUpdate) error {
 	tx, err := t.db.Beginx()
 	if err != nil {
 		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.TransactionErr, Err: err})
 	}
 
-	updateQuery := `UPDATE services SET name = $1, price = $2 WHERE id = $3`
+	updateQuery := `UPDATE services SET name = $1, price = $2, profile_access = $3 WHERE id = $4`
 
-	res, err := tx.ExecContext(ctx, updateQuery, name, price, serviceID)
+	res, err := tx.ExecContext(ctx, updateQuery, service.Name, service.Price, service.ProfileAccess, service.ID)
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
 			return customerr.ErrNormalizer(

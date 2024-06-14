@@ -66,17 +66,17 @@ func (c baseRepo) Get(ctx context.Context) ([]domain.Base, error) {
 	return bases, nil
 }
 
-func (c baseRepo) GetServiceByID(ctx context.Context, id int) (domain.BasePrice, error) {
-	var service domain.BasePrice
+func (c baseRepo) GetServiceByID(ctx context.Context, id int) (domain.Service, error) {
+	var service domain.Service
 
-	getQuery := `SELECT id, name, price FROM services WHERE id = $1`
+	getQuery := `SELECT id, name, price, profile_access FROM services WHERE id = $1`
 
-	err := c.db.QueryRowContext(ctx, getQuery, id).Scan(&service.ID, &service.Name, &service.Price)
+	err := c.db.QueryRowContext(ctx, getQuery, id).Scan(&service.ID, &service.Name, &service.Price, &service.ProfileAccess)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return domain.BasePrice{}, errs.ErrNoService
+			return domain.Service{}, errs.ErrNoService
 		}
-		return domain.BasePrice{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
+		return domain.Service{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
 	}
 
 	return service, nil

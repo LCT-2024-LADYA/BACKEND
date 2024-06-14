@@ -15,7 +15,7 @@ type UserTrainerServiceCreate struct {
 
 type ServiceUser struct {
 	UserTrainerServiceCreate
-	Service        BasePrice `json:"service"`
+	Service        Service   `json:"service"`
 	User           UserCover `json:"user"`
 	ID             int       `json:"id"`
 	IsPayed        bool      `json:"is_payed"`
@@ -30,7 +30,7 @@ type ServiceUserPagination struct {
 
 type ServiceTrainer struct {
 	UserTrainerServiceCreate
-	Service        BasePrice    `json:"service"`
+	Service        Service      `json:"service"`
 	Trainer        TrainerCover `json:"trainer"`
 	ID             int          `json:"id"`
 	IsPayed        bool         `json:"is_payed"`

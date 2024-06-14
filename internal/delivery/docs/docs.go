@@ -1088,7 +1088,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Service details",
                         "schema": {
-                            "$ref": "#/definitions/dto.BasePrice"
+                            "$ref": "#/definitions/dto.Service"
                         }
                     },
                     "400": {
@@ -2977,20 +2977,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.BasePrice": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "integer"
-                }
-            }
-        },
         "dto.BaseStatus": {
             "type": "object",
             "properties": {
@@ -3308,7 +3294,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "service": {
-                    "$ref": "#/definitions/dto.BasePrice"
+                    "$ref": "#/definitions/dto.Service"
                 },
                 "service_id": {
                     "type": "integer"
@@ -3359,21 +3345,34 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ServiceCreate": {
+        "dto.Service": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
+                "id": {
+                    "type": "integer"
+                },
                 "name": {
-                    "type": "string",
-                    "maxLength": 150,
-                    "minLength": 2
+                    "type": "string"
                 },
                 "price": {
-                    "type": "integer",
-                    "maximum": 1000000,
-                    "minimum": 0
+                    "type": "integer"
+                },
+                "profile_access": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.ServiceCreate": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "profile_access": {
+                    "type": "boolean"
                 }
             }
         },
@@ -3387,7 +3386,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "service": {
-                    "$ref": "#/definitions/dto.BasePrice"
+                    "$ref": "#/definitions/dto.Service"
                 },
                 "service_id": {
                     "type": "integer"
@@ -3425,24 +3424,18 @@ const docTemplate = `{
         },
         "dto.ServiceUpdate": {
             "type": "object",
-            "required": [
-                "id",
-                "name"
-            ],
             "properties": {
                 "id": {
-                    "type": "integer",
-                    "minimum": 1
+                    "type": "integer"
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 150,
-                    "minLength": 2
+                    "type": "string"
                 },
                 "price": {
-                    "type": "integer",
-                    "maximum": 1000000,
-                    "minimum": 0
+                    "type": "integer"
+                },
+                "profile_access": {
+                    "type": "boolean"
                 }
             }
         },
@@ -3456,7 +3449,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "service": {
-                    "$ref": "#/definitions/dto.BasePrice"
+                    "$ref": "#/definitions/dto.Service"
                 },
                 "service_id": {
                     "type": "integer"
@@ -3550,7 +3543,7 @@ const docTemplate = `{
                 "services": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.BasePrice"
+                        "$ref": "#/definitions/dto.Service"
                     }
                 },
                 "sex": {
