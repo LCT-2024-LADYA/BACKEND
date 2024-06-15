@@ -4250,6 +4250,9 @@ const docTemplate = `{
                 },
                 "time_start": {
                     "type": "string"
+                },
+                "training_id": {
+                    "type": "integer"
                 }
             }
         },

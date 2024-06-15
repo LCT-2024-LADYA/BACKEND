@@ -94,10 +94,11 @@ type TrainingTrainer struct {
 
 type UserTraining struct {
 	Training
-	Exercises []Exercise `json:"exercises"`
-	Date      time.Time  `json:"date"`
-	TimeStart time.Time  `json:"time_start"`
-	TimeEnd   time.Time  `json:"time_end"`
+	Exercises  []Exercise `json:"exercises"`
+	TrainingID int        `json:"training_id"`
+	Date       time.Time  `json:"date"`
+	TimeStart  time.Time  `json:"time_start"`
+	TimeEnd    time.Time  `json:"time_end"`
 }
 
 type ExerciseDetail struct {

@@ -797,6 +797,8 @@ definitions:
         type: string
       time_start:
         type: string
+      training_id:
+        type: integer
     type: object
   dto.UserUpdate:
     properties:

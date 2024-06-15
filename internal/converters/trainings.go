@@ -186,11 +186,12 @@ func (t trainingConverter) TrainingTrainerDomainToDTO(training domain.TrainingTr
 
 func (t trainingConverter) TrainingDateDomainToDTO(training domain.UserTraining) dto.UserTraining {
 	return dto.UserTraining{
-		Training:  t.TrainingDomainToDTO(training.Training),
-		Exercises: t.ExercisesDomainToDTO(training.Exercises),
-		Date:      training.Date,
-		TimeStart: training.TimeStart,
-		TimeEnd:   training.TimeEnd,
+		Training:   t.TrainingDomainToDTO(training.Training),
+		Exercises:  t.ExercisesDomainToDTO(training.Exercises),
+		TrainingID: training.TrainingID,
+		Date:       training.Date,
+		TimeStart:  training.TimeStart,
+		TimeEnd:    training.TimeEnd,
 	}
 }
 

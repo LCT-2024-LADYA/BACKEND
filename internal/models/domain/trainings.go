@@ -96,10 +96,11 @@ type TrainingTrainer struct {
 
 type UserTraining struct {
 	Training
-	Exercises []Exercise
-	Date      time.Time
-	TimeStart time.Time
-	TimeEnd   time.Time
+	Exercises  []Exercise
+	TrainingID int
+	Date       time.Time
+	TimeStart  time.Time
+	TimeEnd    time.Time
 }
 
 type ExerciseDetail struct {

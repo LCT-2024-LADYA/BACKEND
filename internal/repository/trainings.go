@@ -435,7 +435,7 @@ func (t trainingRepo) GetTrainingCoversByTrainerID(ctx context.Context, search s
 
 func (t trainingRepo) GetScheduleTrainings(ctx context.Context, userTrainingIDs []int) ([]domain.UserTraining, error) {
 	query := `
-	SELECT ut.id, t.name, t.description, ut.date, ut.time_start, ut.time_end,
+	SELECT ut.id, t.id, t.name, t.description, ut.date, ut.time_start, ut.time_end,
 	       e.id, e.name, e.muscle, e.additional_muscle, e.type, e.equipment, e.difficulty,
 	       e.photos, ute.sets, ute.reps, ute.weight, ute.status, te.step
 	FROM users_trainings ut
@@ -452,13 +452,13 @@ func (t trainingRepo) GetScheduleTrainings(ctx context.Context, userTrainingIDs 
 	}
 	defer rows.Close()
 
-	trainingMap := make(map[int]*domain.UserTraining)
+	trainingMap := make(map[int]domain.UserTraining)
 
 	var training domain.UserTraining
 	for rows.Next() {
 		var exercise domain.Exercise
 
-		err := rows.Scan(&training.ID, &training.Name, &training.Description, &training.Date, &training.TimeStart, &training.TimeEnd,
+		err := rows.Scan(&training.ID, &training.TrainingID, &training.Name, &training.Description, &training.Date, &training.TimeStart, &training.TimeEnd,
 			&exercise.ID, &exercise.Name, &exercise.Muscle, &exercise.AdditionalMuscle, &exercise.Type, &exercise.Equipment, &exercise.Difficulty,
 			pq.Array(&exercise.Photos), &exercise.Sets, &exercise.Reps, &exercise.Weight, &exercise.Status, &exercise.Step)
 		if err != nil {
@@ -466,10 +466,13 @@ func (t trainingRepo) GetScheduleTrainings(ctx context.Context, userTrainingIDs 
 		}
 
 		if _, exists := trainingMap[training.ID]; !exists {
-			trainingMap[training.ID] = &training
+			training.Exercises = []domain.Exercise{}
+			trainingMap[training.ID] = training
 		}
 
-		trainingMap[training.ID].Exercises = append(trainingMap[training.ID].Exercises, exercise)
+		tr := trainingMap[training.ID]
+		tr.Exercises = append(trainingMap[training.ID].Exercises, exercise)
+		trainingMap[training.ID] = tr
 	}
 
 	if err = rows.Err(); err != nil {
@@ -478,7 +481,7 @@ func (t trainingRepo) GetScheduleTrainings(ctx context.Context, userTrainingIDs 
 
 	var userTrainings []domain.UserTraining
 	for _, userTraining := range trainingMap {
-		userTrainings = append(userTrainings, *userTraining)
+		userTrainings = append(userTrainings, userTraining)
 	}
 
 	return userTrainings, nil
