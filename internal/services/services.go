@@ -46,7 +46,7 @@ type Trainers interface {
 type UserTrainerServices interface {
 	Create(ctx context.Context, service domain.UserTrainerServiceCreate) (int, error)
 	Schedule(ctx context.Context, schedule domain.ScheduleService) (int, error)
-	GetSchedule(ctx context.Context, month, trainerID int) ([]dto.Schedule, error)
+	GetSchedule(ctx context.Context, month, trainerID int) ([]dto.TrainingSchedule, error)
 	GetSchedulesByIDs(ctx context.Context, scheduleIDs []int) ([]dto.ScheduleServiceUser, error)
 	DeleteScheduled(ctx context.Context, scheduleID int) error
 	GetUserServices(ctx context.Context, trainerID, cursor int) (dto.ServiceUserPagination, error)
@@ -74,9 +74,13 @@ type Trainings interface {
 	GetTrainingTrainer(ctx context.Context, trainingID int) (dto.TrainingTrainer, error)
 	GetScheduleTrainings(ctx context.Context, userTrainingIDs []int) ([]dto.UserTraining, error)
 	ScheduleTraining(ctx context.Context, training domain.ScheduleTraining) (int, []int, error)
-	GetSchedule(ctx context.Context, month, userID int) ([]dto.Schedule, error)
+	GetSchedule(ctx context.Context, month, userID int) ([]dto.TrainingSchedule, error)
 	DeleteUserTraining(ctx context.Context, trainingID int) error
 	DeleteScheduledTraining(ctx context.Context, userTrainingID int) error
+	CreatePlan(ctx context.Context, plan domain.PlanCreate) (int, error)
+	GetPlanCoversByUserID(ctx context.Context, userID int) ([]dto.PlanCover, error)
+	GetPlan(ctx context.Context, planID int) (dto.Plan, error)
+	DeletePlan(ctx context.Context, planID int) error
 }
 
 type Chat interface {

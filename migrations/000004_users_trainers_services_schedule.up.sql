@@ -12,7 +12,7 @@ CREATE TABLE users_trainers_services
     FOREIGN KEY (service_id) REFERENCES services (id) ON DELETE CASCADE
 );
 
-CREATE TABLE trainer_users_trainers_services
+CREATE TABLE users_trainers_services_schedule
 (
     id                         SERIAL PRIMARY KEY,
     users_trainers_services_id INTEGER NOT NULL,

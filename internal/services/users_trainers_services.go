@@ -61,14 +61,14 @@ func (s usersTrainersServicesService) Schedule(ctx context.Context, schedule dom
 	return createdID, nil
 }
 
-func (s usersTrainersServicesService) GetSchedule(ctx context.Context, month, trainerID int) ([]dto.Schedule, error) {
+func (s usersTrainersServicesService) GetSchedule(ctx context.Context, month, trainerID int) ([]dto.TrainingSchedule, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.dbResponseTime)
 	defer cancel()
 
 	schedules, err := s.serviceRepo.GetSchedule(ctx, month, trainerID)
 	if err != nil {
 		s.logger.Error().Msg(err.Error())
-		return []dto.Schedule{}, err
+		return []dto.TrainingSchedule{}, err
 	}
 
 	s.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Service))

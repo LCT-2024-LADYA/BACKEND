@@ -171,6 +171,12 @@ func initTrainingsRouter(group *gin.RouterGroup, trainingHandler *handlers.Train
 	trainingGroup.GET("schedule", userMiddleware, trainingHandler.GetSchedule)
 	trainingGroup.DELETE("user/:training_id", trainingHandler.DeleteUserTraining)
 	trainingGroup.DELETE("schedule/:user_training_id", trainingHandler.DeleteScheduledTraining)
+
+	trainingGroup.POST("plan/user", userMiddleware, trainingHandler.CreatePlanUser)
+	trainingGroup.POST("plan/user/:user_id", trainingHandler.CreatePlanTrainer)
+	trainingGroup.GET("plan/user", userMiddleware, trainingHandler.GetPlanCoversByUserID)
+	trainingGroup.GET("plan/:plan_id", trainingHandler.GetPlan)
+	trainingGroup.DELETE("plan/:plan_id", trainingHandler.DeletePlan)
 }
 
 func initChatRouter(group *gin.RouterGroup, chatHandler *handlers.ChatHandler, userMiddleware gin.HandlerFunc, trainerMiddleware gin.HandlerFunc) {

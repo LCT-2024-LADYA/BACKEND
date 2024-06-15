@@ -98,7 +98,7 @@ func (s UserTrainerServiceHandler) ScheduleService(c *gin.Context) {
 // @Produce json
 // @Param access_token header string true "Access token"
 // @Param month path int true "Month (1-12)"
-// @Success 200 {object} []dto.Schedule "Return schedule for the month"
+// @Success 200 {object} []dto.TrainingSchedule "Return schedule for the month"
 // @Failure 400 {object} responses.MessageResponse "Invalid month or JWT provided"
 // @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
 // @Failure 500 "Internal server error"

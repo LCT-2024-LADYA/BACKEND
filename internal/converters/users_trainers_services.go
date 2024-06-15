@@ -16,8 +16,8 @@ type ServicesConverter interface {
 	ServiceTrainerDomainToDTO(service domain.ServiceTrainer) dto.ServiceTrainer
 	ServicesTrainerDomainToDTO(services []domain.ServiceTrainer) []dto.ServiceTrainer
 	ServiceTrainerPaginationDomainToDTO(service domain.ServiceTrainerPagination) dto.ServiceTrainerPagination
-	ScheduleDomainToDTO(schedule domain.Schedule) dto.Schedule
-	SchedulesDomainToDTO(schedules []domain.Schedule) []dto.Schedule
+	ScheduleDomainToDTO(schedule domain.TrainingSchedule) dto.TrainingSchedule
+	SchedulesDomainToDTO(schedules []domain.TrainingSchedule) []dto.TrainingSchedule
 	ScheduleServiceDomainToDTO(schedule domain.ScheduleService) dto.ScheduleService
 	ScheduleServiceUserDomainToDTO(schedule domain.ScheduleServiceUser) dto.ScheduleServiceUser
 	SchedulesServiceUserDomainToDTO(schedules []domain.ScheduleServiceUser) []dto.ScheduleServiceUser
@@ -118,15 +118,15 @@ func (s servicesConverter) ServiceTrainerPaginationDomainToDTO(service domain.Se
 	}
 }
 
-func (s servicesConverter) ScheduleDomainToDTO(schedule domain.Schedule) dto.Schedule {
-	return dto.Schedule{
+func (s servicesConverter) ScheduleDomainToDTO(schedule domain.TrainingSchedule) dto.TrainingSchedule {
+	return dto.TrainingSchedule{
 		Date:        schedule.Date,
 		TrainingIDs: schedule.TrainingIDs,
 	}
 }
 
-func (s servicesConverter) SchedulesDomainToDTO(schedules []domain.Schedule) []dto.Schedule {
-	result := make([]dto.Schedule, len(schedules))
+func (s servicesConverter) SchedulesDomainToDTO(schedules []domain.TrainingSchedule) []dto.TrainingSchedule {
+	result := make([]dto.TrainingSchedule, len(schedules))
 
 	for i, schedule := range schedules {
 		result[i] = s.ScheduleDomainToDTO(schedule)

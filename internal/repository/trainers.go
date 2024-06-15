@@ -674,8 +674,8 @@ func (t trainerRepo) Schedule(ctx context.Context, schedule domain.ScheduleServi
 	return createdID, nil
 }
 
-func (t trainerRepo) GetSchedule(ctx context.Context, month int) ([]domain.Schedule, error) {
-	var schedules []domain.Schedule
+func (t trainerRepo) GetSchedule(ctx context.Context, month int) ([]domain.TrainingSchedule, error) {
+	var schedules []domain.TrainingSchedule
 
 	query := `
 		SELECT date, array_agg(id) AS training_ids
@@ -691,7 +691,7 @@ func (t trainerRepo) GetSchedule(ctx context.Context, month int) ([]domain.Sched
 	defer rows.Close()
 
 	for rows.Next() {
-		var schedule domain.Schedule
+		var schedule domain.TrainingSchedule
 		var trainingIDs pq.Int64Array
 		err := rows.Scan(&schedule.Date, &trainingIDs)
 		if err != nil {

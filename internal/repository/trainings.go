@@ -625,9 +625,7 @@ func (t trainingRepo) ScheduleTraining(ctx context.Context, training domain.Sche
 	return userTrainingID, userTrainingExerciseIDs, nil
 }
 
-func (t trainingRepo) GetSchedule(ctx context.Context, month, userID int) ([]domain.Schedule, error) {
-	var schedules []domain.Schedule
-
+func (t trainingRepo) GetSchedule(ctx context.Context, month, userID int) ([]domain.TrainingSchedule, error) {
 	query := `
 		SELECT date, array_agg(id) AS training_ids
 		FROM users_trainings
@@ -641,8 +639,9 @@ func (t trainingRepo) GetSchedule(ctx context.Context, month, userID int) ([]dom
 	}
 	defer rows.Close()
 
+	var schedules []domain.TrainingSchedule
 	for rows.Next() {
-		var schedule domain.Schedule
+		var schedule domain.TrainingSchedule
 		var trainingIDs pq.Int64Array
 		err := rows.Scan(&schedule.Date, &trainingIDs)
 		if err != nil {
@@ -682,5 +681,125 @@ func (t trainingRepo) DeleteScheduledTraining(ctx context.Context, userTrainingI
 		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
 	}
 
+	return nil
+}
+
+func (t trainingRepo) CreatePlan(ctx context.Context, plan domain.PlanCreate) (int, error) {
+	tx, err := t.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	var planID int
+	query := `
+		INSERT INTO plans (user_id, name, description)
+		VALUES ($1, $2, $3)
+		RETURNING id
+	`
+	err = tx.QueryRowContext(ctx, query, plan.UserID, plan.Name, plan.Description).Scan(&planID)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	query = `
+		INSERT INTO plans_trainings (plan_id, training_id)
+		VALUES ($1, $2)
+	`
+	for _, trainingID := range plan.Trainings {
+		_, err = tx.ExecContext(ctx, query, planID, trainingID)
+		if err != nil {
+			tx.Rollback()
+			return 0, err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return 0, err
+	}
+
+	return planID, nil
+}
+
+func (t trainingRepo) GetPlanCoversByUserID(ctx context.Context, userID int) ([]domain.PlanCover, error) {
+	query := `
+		SELECT p.id, p.name, p.description, COUNT(pt.training_id)
+		FROM plans p
+		LEFT JOIN plans_trainings pt ON p.id = pt.plan_id
+		WHERE p.user_id = $1
+		GROUP BY p.id
+	`
+	rows, err := t.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var planCovers []domain.PlanCover
+	for rows.Next() {
+		var cover domain.PlanCover
+		err := rows.Scan(&cover.ID, &cover.Name, &cover.Description, &cover.Trainings)
+		if err != nil {
+			return nil, err
+		}
+		planCovers = append(planCovers, cover)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return planCovers, nil
+}
+
+func (t trainingRepo) GetPlan(ctx context.Context, planID int) (domain.Plan, error) {
+	query := `
+		SELECT p.id, p.name, p.description
+		FROM plans p
+		WHERE p.id = $1
+	`
+	var plan domain.Plan
+	err := t.db.QueryRowContext(ctx, query, planID).Scan(&plan.ID, &plan.Name, &plan.Description)
+	if err != nil {
+		return domain.Plan{}, err
+	}
+
+	query = `
+		SELECT t.id, t.name, t.description, COUNT(te.exercise_id)
+		FROM trainings t
+		LEFT JOIN trainings_exercises te ON t.id = te.training_id
+		JOIN plans_trainings pt ON pt.training_id = t.id
+		WHERE pt.plan_id = $1
+		GROUP BY t.id
+	`
+	rows, err := t.db.QueryContext(ctx, query, planID)
+	if err != nil {
+		return domain.Plan{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var training domain.TrainingCover
+		err := rows.Scan(&training.ID, &training.Name, &training.Description, &training.Exercises)
+		if err != nil {
+			return domain.Plan{}, err
+		}
+		plan.Trainings = append(plan.Trainings, training)
+	}
+
+	if err = rows.Err(); err != nil {
+		return domain.Plan{}, err
+	}
+
+	return plan, nil
+}
+
+func (t trainingRepo) DeletePlan(ctx context.Context, planID int) error {
+	query := `DELETE FROM plans WHERE id = $1`
+	_, err := t.db.ExecContext(ctx, query, planID)
+	if err != nil {
+		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
+	}
 	return nil
 }

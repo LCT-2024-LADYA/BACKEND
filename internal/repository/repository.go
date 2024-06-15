@@ -45,7 +45,7 @@ type Trainers interface {
 type UsersTrainersServices interface {
 	Create(ctx context.Context, service domain.UserTrainerServiceCreate) (int, error)
 	Schedule(ctx context.Context, schedule domain.ScheduleService) (int, error)
-	GetSchedule(ctx context.Context, month, trainerID int) ([]domain.Schedule, error)
+	GetSchedule(ctx context.Context, month, trainerID int) ([]domain.TrainingSchedule, error)
 	GetSchedulesByIDs(ctx context.Context, scheduleIDs []int) ([]domain.ScheduleServiceUser, error)
 	DeleteScheduled(ctx context.Context, scheduleID int) error
 	GetUserServices(ctx context.Context, trainerID, cursor int) (domain.ServiceUserPagination, error)
@@ -68,9 +68,13 @@ type Trainings interface {
 	GetTrainingTrainer(ctx context.Context, trainingID int) (domain.TrainingTrainer, error)
 	GetScheduleTrainings(ctx context.Context, userTrainingIDs []int) ([]domain.UserTraining, error)
 	ScheduleTraining(ctx context.Context, training domain.ScheduleTraining) (int, []int, error)
-	GetSchedule(ctx context.Context, month, userID int) ([]domain.Schedule, error)
+	GetSchedule(ctx context.Context, month, userID int) ([]domain.TrainingSchedule, error)
 	DeleteUserTraining(ctx context.Context, trainingID int) error
 	DeleteScheduledTraining(ctx context.Context, userTrainingID int) error
+	CreatePlan(ctx context.Context, plan domain.PlanCreate) (int, error)
+	GetPlanCoversByUserID(ctx context.Context, userID int) ([]domain.PlanCover, error)
+	GetPlan(ctx context.Context, planID int) (domain.Plan, error)
+	DeletePlan(ctx context.Context, planID int) error
 }
 
 type Chat interface {

@@ -21,6 +21,7 @@ const (
 	Service  = "service"
 	Exercise = "exercise"
 	Training = "training"
+	Plan     = "plan"
 	Schedule = "schedule"
 	Message  = "message"
 	Chat     = "chat"

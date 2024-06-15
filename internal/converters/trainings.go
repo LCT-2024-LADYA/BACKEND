@@ -24,8 +24,13 @@ type TrainingConverter interface {
 	TrainingTrainerDomainToDTO(training domain.TrainingTrainer) dto.TrainingTrainer
 	TrainingDateDomainToDTO(training domain.UserTraining) dto.UserTraining
 	TrainingsDateDomainToDTO(trainings []domain.UserTraining) []dto.UserTraining
-	ScheduleDomainToDTO(schedule domain.Schedule) dto.Schedule
-	SchedulesDomainToDTO(schedules []domain.Schedule) []dto.Schedule
+	TrainingScheduleDomainToDTO(schedule domain.TrainingSchedule) dto.TrainingSchedule
+	TrainingSchedulesDomainToDTO(schedules []domain.TrainingSchedule) []dto.TrainingSchedule
+	SchedulePlanDomainToDTO(schedule domain.SchedulePlan) dto.SchedulePlan
+	SchedulesPlanDomainToDTO(schedule []domain.SchedulePlan) []dto.SchedulePlan
+	PlanCoverDomainToDTO(plan domain.PlanCover) dto.PlanCover
+	PlanCoversDomainToDTO(plans []domain.PlanCover) []dto.PlanCover
+	PlanDomainToDTO(plan domain.Plan) dto.Plan
 
 	ExerciseCreateBaseDTOToDomain(exercise dto.ExerciseCreateBase) domain.ExerciseCreateBase
 	ExercisesCreateBaseDTOToDomain(exercises []dto.ExerciseCreateBase) []domain.ExerciseCreateBase
@@ -36,6 +41,8 @@ type TrainingConverter interface {
 	ScheduleTrainingDTOToDomain(training dto.ScheduleTraining, userID int) domain.ScheduleTraining
 	ExerciseStepDTOToDomain(exercise dto.ExerciseStep) domain.ExerciseStep
 	ExerciseStepsBasesDTOToDomain(exercises []dto.ExerciseStep) []domain.ExerciseStep
+	PlanCreateDTOToDomain(plan dto.PlanCreate, userID int) domain.PlanCreate
+	SchedulePlanDTOToDomain(plan dto.SchedulePlan) domain.SchedulePlan
 }
 
 type trainingConverter struct{}
@@ -205,21 +212,65 @@ func (t trainingConverter) TrainingsDateDomainToDTO(trainings []domain.UserTrain
 	return result
 }
 
-func (t trainingConverter) ScheduleDomainToDTO(schedule domain.Schedule) dto.Schedule {
-	return dto.Schedule{
+func (t trainingConverter) TrainingScheduleDomainToDTO(schedule domain.TrainingSchedule) dto.TrainingSchedule {
+	return dto.TrainingSchedule{
 		Date:        schedule.Date,
 		TrainingIDs: schedule.TrainingIDs,
 	}
 }
 
-func (t trainingConverter) SchedulesDomainToDTO(schedules []domain.Schedule) []dto.Schedule {
-	result := make([]dto.Schedule, len(schedules))
+func (t trainingConverter) TrainingSchedulesDomainToDTO(schedules []domain.TrainingSchedule) []dto.TrainingSchedule {
+	result := make([]dto.TrainingSchedule, len(schedules))
 
 	for i, schedule := range schedules {
-		result[i] = t.ScheduleDomainToDTO(schedule)
+		result[i] = t.TrainingScheduleDomainToDTO(schedule)
 	}
 
 	return result
+}
+
+func (t trainingConverter) SchedulePlanDomainToDTO(schedule domain.SchedulePlan) dto.SchedulePlan {
+	return dto.SchedulePlan{
+		PlanID:    schedule.PlanID,
+		DateStart: schedule.DateStart,
+		DateEnd:   schedule.DateEnd,
+	}
+}
+
+func (t trainingConverter) SchedulesPlanDomainToDTO(schedules []domain.SchedulePlan) []dto.SchedulePlan {
+	result := make([]dto.SchedulePlan, len(schedules))
+
+	for i, schedule := range schedules {
+		result[i] = t.SchedulePlanDomainToDTO(schedule)
+	}
+
+	return result
+}
+
+func (t trainingConverter) PlanCoverDomainToDTO(plan domain.PlanCover) dto.PlanCover {
+	return dto.PlanCover{
+		ID:          plan.ID,
+		Name:        plan.Name,
+		Description: plan.Description,
+		Trainings:   plan.Trainings,
+	}
+}
+
+func (t trainingConverter) PlanCoversDomainToDTO(plans []domain.PlanCover) []dto.PlanCover {
+	result := make([]dto.PlanCover, len(plans))
+
+	for i, plan := range plans {
+		result[i] = t.PlanCoverDomainToDTO(plan)
+	}
+
+	return result
+}
+
+func (t trainingConverter) PlanDomainToDTO(plan domain.Plan) dto.Plan {
+	return dto.Plan{
+		PlanCover: t.PlanCoverDomainToDTO(plan.PlanCover),
+		Trainings: t.TrainingCoversDomainToDTO(plan.Trainings),
+	}
 }
 
 // DTO -> Domain
@@ -327,5 +378,22 @@ func (t trainingConverter) ScheduleTrainingDTOToDomain(training dto.ScheduleTrai
 		TimeStart:  training.TimeStart,
 		TimeEnd:    training.TimeEnd,
 		Exercises:  t.ExercisesDetailBasesDTOToDomain(training.Exercises),
+	}
+}
+
+func (t trainingConverter) PlanCreateDTOToDomain(plan dto.PlanCreate, userID int) domain.PlanCreate {
+	return domain.PlanCreate{
+		UserID:      userID,
+		Name:        plan.Name,
+		Description: plan.Description,
+		Trainings:   plan.Trainings,
+	}
+}
+
+func (t trainingConverter) SchedulePlanDTOToDomain(plan dto.SchedulePlan) domain.SchedulePlan {
+	return domain.SchedulePlan{
+		PlanID:    plan.PlanID,
+		DateStart: plan.DateStart,
+		DateEnd:   plan.DateEnd,
 	}
 }

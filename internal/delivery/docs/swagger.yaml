@@ -213,11 +213,37 @@ definitions:
           $ref: '#/definitions/dto.Message'
         type: array
     type: object
-  dto.Schedule:
+  dto.Plan:
     properties:
-      date:
+      description:
         type: string
-      user_training_ids:
+      id:
+        type: integer
+      name:
+        type: string
+      trainings:
+        items:
+          $ref: '#/definitions/dto.TrainingCover'
+        type: array
+    type: object
+  dto.PlanCover:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      trainings:
+        type: integer
+    type: object
+  dto.PlanCreate:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      trainings:
         items:
           type: integer
         type: array
@@ -645,6 +671,15 @@ definitions:
         type: string
       wants_public:
         type: boolean
+    type: object
+  dto.TrainingSchedule:
+    properties:
+      date:
+        type: string
+      user_training_ids:
+        items:
+          type: integer
+        type: array
     type: object
   dto.TrainingTrainer:
     properties:
@@ -1459,7 +1494,7 @@ paths:
           description: Return schedule for the month
           schema:
             items:
-              $ref: '#/definitions/dto.Schedule'
+              $ref: '#/definitions/dto.TrainingSchedule'
             type: array
         "400":
           description: Invalid month or JWT provided
@@ -2485,6 +2520,167 @@ paths:
       summary: Create Exercises
       tags:
       - Trainings
+  /api/training/plan/{plan_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a plan by ID
+      parameters:
+      - description: Plan ID
+        in: path
+        name: plan_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Plan deleted successfully
+        "400":
+          description: Invalid plan ID
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Delete Plan
+      tags:
+      - Trainings
+    get:
+      consumes:
+      - application/json
+      description: Get a plan by ID
+      parameters:
+      - description: Plan ID
+        in: path
+        name: plan_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return plan
+          schema:
+            $ref: '#/definitions/dto.Plan'
+        "400":
+          description: Invalid plan ID
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "404":
+          description: No plan with such ID
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Plan
+      tags:
+      - Trainings
+  /api/training/plan/user:
+    get:
+      consumes:
+      - application/json
+      description: Get plan covers by user ID
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return plan covers
+          schema:
+            items:
+              $ref: '#/definitions/dto.PlanCover'
+            type: array
+        "400":
+          description: Bad query or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Plan Covers by User ID
+      tags:
+      - Trainings
+    post:
+      consumes:
+      - application/json
+      description: Create a new plan
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Plan data to create
+        in: body
+        name: plan
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PlanCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Plan successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Bad body or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Plan
+      tags:
+      - Trainings
+  /api/training/plan/user/{user_id}:
+    post:
+      consumes:
+      - application/json
+      description: Create a new plan for user from trainer
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Plan data to create
+        in: body
+        name: plan
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PlanCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Plan successfully created
+          schema:
+            $ref: '#/definitions/responses.CreatedIDResponse'
+        "400":
+          description: Bad body provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Create Plan Trainer
+      tags:
+      - Trainings
   /api/training/schedule:
     get:
       consumes:
@@ -2508,7 +2704,7 @@ paths:
           description: Return schedule for the month
           schema:
             items:
-              $ref: '#/definitions/dto.Schedule'
+              $ref: '#/definitions/dto.TrainingSchedule'
             type: array
         "400":
           description: Bad month or JWT provided

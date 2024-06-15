@@ -522,7 +522,7 @@ func (t TrainingHandler) ScheduleTraining(c *gin.Context) {
 // @Produce json
 // @Param access_token header string true "Access token"
 // @Param month query int true "Month (1-12)"
-// @Success 200 {array} dto.Schedule "Return schedule for the month"
+// @Success 200 {object} []dto.TrainingSchedule "Return schedule for the month"
 // @Failure 400 {object} responses.MessageResponse "Bad month or JWT provided"
 // @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
 // @Failure 500 "Internal server error"
@@ -602,6 +602,166 @@ func (t TrainingHandler) DeleteScheduledTraining(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	err = t.service.DeleteScheduledTraining(ctx, userTrainingID)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+// CreatePlanUser
+// @Summary Create Plan
+// @Description Create a new plan
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param access_token header string true "Access token"
+// @Param plan body dto.PlanCreate true "Plan data to create"
+// @Success 201 {object} responses.CreatedIDResponse "Plan successfully created"
+// @Failure 400 {object} responses.MessageResponse "Bad body or JWT provided"
+// @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
+// @Failure 500 "Internal server error"
+// @Router /api/training/plan/user [post]
+func (t TrainingHandler) CreatePlanUser(c *gin.Context) {
+	var plan dto.PlanCreate
+
+	if err := c.ShouldBindJSON(&plan); err != nil {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadBody})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	userID := c.GetInt(middleware.UserID)
+
+	id, err := t.service.CreatePlan(ctx, t.converter.PlanCreateDTOToDomain(plan, userID))
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusCreated, responses.CreatedIDResponse{ID: id})
+}
+
+// CreatePlanTrainer
+// @Summary Create Plan Trainer
+// @Description Create a new plan for user from trainer
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param user_id path int true "User ID"
+// @Param plan body dto.PlanCreate true "Plan data to create"
+// @Success 201 {object} responses.CreatedIDResponse "Plan successfully created"
+// @Failure 400 {object} responses.MessageResponse "Bad body provided"
+// @Failure 500 "Internal server error"
+// @Router /api/training/plan/user/{user_id} [post]
+func (t TrainingHandler) CreatePlanTrainer(c *gin.Context) {
+	userIDStr := c.Param("user_id")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil || userID <= 0 {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadPath})
+		return
+	}
+
+	var plan dto.PlanCreate
+
+	if err := c.ShouldBindJSON(&plan); err != nil {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadBody})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	id, err := t.service.CreatePlan(ctx, t.converter.PlanCreateDTOToDomain(plan, userID))
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusCreated, responses.CreatedIDResponse{ID: id})
+}
+
+// GetPlanCoversByUserID
+// @Summary Get Plan Covers by User ID
+// @Description Get plan covers by user ID
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param access_token header string true "Access token"
+// @Success 200 {object} []dto.PlanCover "Return plan covers"
+// @Failure 400 {object} responses.MessageResponse "Bad query or JWT provided"
+// @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
+// @Failure 500 "Internal server error"
+// @Router /api/training/plan/user [get]
+func (t TrainingHandler) GetPlanCoversByUserID(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userID := c.GetInt(middleware.UserID)
+
+	covers, err := t.service.GetPlanCoversByUserID(ctx, userID)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, covers)
+}
+
+// GetPlan
+// @Summary Get Plan
+// @Description Get a plan by ID
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param plan_id path int true "Plan ID"
+// @Success 200 {object} dto.Plan "Return plan"
+// @Failure 400 {object} responses.MessageResponse "Invalid plan ID"
+// @Failure 404 {object} responses.MessageResponse "No plan with such ID"
+// @Failure 500 "Internal server error"
+// @Router /api/training/plan/{plan_id} [get]
+func (t TrainingHandler) GetPlan(c *gin.Context) {
+	planIDStr := c.Param("plan_id")
+	planID, err := strconv.Atoi(planIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadPath})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	plan, err := t.service.GetPlan(ctx, planID)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, plan)
+}
+
+// DeletePlan
+// @Summary Delete Plan
+// @Description Delete a plan by ID
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param plan_id path int true "Plan ID"
+// @Success 200 "Plan deleted successfully"
+// @Failure 400 {object} responses.MessageResponse "Invalid plan ID"
+// @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
+// @Failure 500 "Internal server error"
+// @Router /api/training/plan/{plan_id} [delete]
+func (t TrainingHandler) DeletePlan(c *gin.Context) {
+	planIDStr := c.Param("plan_id")
+	planID, err := strconv.Atoi(planIDStr)
+	if err != nil || planID <= 0 {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadPath})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	err = t.service.DeletePlan(ctx, planID)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return

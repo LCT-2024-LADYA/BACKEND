@@ -843,7 +843,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.Schedule"
+                                "$ref": "#/definitions/dto.TrainingSchedule"
                             }
                         }
                     },
@@ -2309,6 +2309,249 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/training/plan/user": {
+            "get": {
+                "description": "Get plan covers by user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Get Plan Covers by User ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return plan covers",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.PlanCover"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad query or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new plan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Create Plan",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Plan data to create",
+                        "name": "plan",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PlanCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Plan successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CreatedIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/training/plan/user/{user_id}": {
+            "post": {
+                "description": "Create a new plan for user from trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Create Plan Trainer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Plan data to create",
+                        "name": "plan",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PlanCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Plan successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CreatedIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/training/plan/{plan_id}": {
+            "get": {
+                "description": "Get a plan by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Get Plan",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Plan ID",
+                        "name": "plan_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return plan",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Plan"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid plan ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No plan with such ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a plan by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Delete Plan",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Plan ID",
+                        "name": "plan_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plan deleted successfully"
+                    },
+                    "400": {
+                        "description": "Invalid plan ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
         "/api/training/schedule": {
             "get": {
                 "description": "Get schedule for the specified month",
@@ -2344,7 +2587,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.Schedule"
+                                "$ref": "#/definitions/dto.TrainingSchedule"
                             }
                         }
                     },
@@ -3407,13 +3650,53 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.Schedule": {
+        "dto.Plan": {
             "type": "object",
             "properties": {
-                "date": {
+                "description": {
                     "type": "string"
                 },
-                "user_training_ids": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "trainings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TrainingCover"
+                    }
+                }
+            }
+        },
+        "dto.PlanCover": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "trainings": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PlanCreate": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "trainings": {
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -4035,6 +4318,20 @@ const docTemplate = `{
                 },
                 "wants_public": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.TrainingSchedule": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "user_training_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },

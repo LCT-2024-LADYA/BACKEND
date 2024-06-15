@@ -118,7 +118,32 @@ type ScheduleTraining struct {
 	Exercises  []ExerciseDetail
 }
 
-type Schedule struct {
+type TrainingSchedule struct {
 	Date        time.Time
 	TrainingIDs []int
+}
+
+type PlanCreate struct {
+	UserID      int
+	Name        string
+	Description string
+	Trainings   []int
+}
+
+type PlanCover struct {
+	ID          int
+	Name        string
+	Description string
+	Trainings   int
+}
+
+type Plan struct {
+	PlanCover
+	Trainings []TrainingCover
+}
+
+type SchedulePlan struct {
+	PlanID    int
+	DateStart time.Time
+	DateEnd   time.Time
 }

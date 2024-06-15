@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS plans_trainings;
+DROP TABLE IF EXISTS plans;

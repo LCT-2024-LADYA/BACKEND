@@ -115,11 +115,35 @@ type ScheduleTraining struct {
 	Exercises  []ExerciseDetail `json:"exercises"`
 }
 
-type Schedule struct {
+type TrainingSchedule struct {
 	Date        time.Time `json:"date"`
 	TrainingIDs []int     `json:"user_training_ids"`
 }
 
 type ExerciseStatusUpdate struct {
 	Status bool `json:"status"`
+}
+
+type PlanCreate struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Trainings   []int  `json:"trainings"`
+}
+
+type PlanCover struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Trainings   int    `json:"trainings"`
+}
+
+type Plan struct {
+	PlanCover
+	Trainings []TrainingCover `json:"trainings"`
+}
+
+type SchedulePlan struct {
+	PlanID    int       `json:"plan_id"`
+	DateStart time.Time `json:"date_start"`
+	DateEnd   time.Time `json:"date_end"`
 }

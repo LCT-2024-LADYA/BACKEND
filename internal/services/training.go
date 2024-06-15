@@ -234,19 +234,19 @@ func (t trainingService) ScheduleTraining(ctx context.Context, training domain.S
 	return createdID, createdIDs, nil
 }
 
-func (t trainingService) GetSchedule(ctx context.Context, month, userID int) ([]dto.Schedule, error) {
+func (t trainingService) GetSchedule(ctx context.Context, month, userID int) ([]dto.TrainingSchedule, error) {
 	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
 	defer cancel()
 
 	schedules, err := t.trainingRepo.GetSchedule(ctx, month, userID)
 	if err != nil {
 		t.logger.Error().Msg(err.Error())
-		return []dto.Schedule{}, err
+		return []dto.TrainingSchedule{}, err
 	}
 
 	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Schedule))
 
-	return t.converter.SchedulesDomainToDTO(schedules), nil
+	return t.converter.TrainingSchedulesDomainToDTO(schedules), nil
 }
 
 func (t trainingService) DeleteUserTraining(ctx context.Context, trainingID int) error {
@@ -274,7 +274,67 @@ func (t trainingService) DeleteScheduledTraining(ctx context.Context, userTraini
 		return err
 	}
 
-	t.logger.Info().Msg(log.Normalizer(log.DeleteObject, log.Training))
+	t.logger.Info().Msg(log.Normalizer(log.DeleteObject, log.Training, userTrainingID))
+
+	return nil
+}
+
+func (t trainingService) CreatePlan(ctx context.Context, plan domain.PlanCreate) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	createdID, err := t.trainingRepo.CreatePlan(ctx, plan)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return 0, err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.CreateObject, log.Plan, createdID))
+
+	return createdID, nil
+}
+
+func (t trainingService) GetPlanCoversByUserID(ctx context.Context, userID int) ([]dto.PlanCover, error) {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	plans, err := t.trainingRepo.GetPlanCoversByUserID(ctx, userID)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return []dto.PlanCover{}, err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Plan))
+
+	return t.converter.PlanCoversDomainToDTO(plans), nil
+}
+
+func (t trainingService) GetPlan(ctx context.Context, planID int) (dto.Plan, error) {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	plan, err := t.trainingRepo.GetPlan(ctx, planID)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return dto.Plan{}, err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.GetObject, log.Plan, planID))
+
+	return t.converter.PlanDomainToDTO(plan), nil
+}
+
+func (t trainingService) DeletePlan(ctx context.Context, planID int) error {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	err := t.trainingRepo.DeletePlan(ctx, planID)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.DeleteObject, log.Plan, planID))
 
 	return nil
 }
