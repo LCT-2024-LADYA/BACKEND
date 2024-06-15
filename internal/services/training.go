@@ -8,7 +8,6 @@ import (
 	"BACKEND/pkg/log"
 	"context"
 	"github.com/rs/zerolog"
-	"gopkg.in/guregu/null.v3"
 	"strings"
 	"time"
 )
@@ -100,6 +99,21 @@ func (t trainingService) CreateTraining(ctx context.Context, training domain.Tra
 	return id, nil
 }
 
+func (t trainingService) CreateTrainingTrainer(ctx context.Context, training domain.TrainingCreateTrainer) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	id, err := t.trainingRepo.CreateTrainingTrainer(ctx, training)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return 0, err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.CreateObject, log.Training, id))
+
+	return id, nil
+}
+
 func (t trainingService) SetExerciseStatus(ctx context.Context, usersTrainingsID, usersExercisesID int, status bool) error {
 	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
 	defer cancel()
@@ -115,11 +129,11 @@ func (t trainingService) SetExerciseStatus(ctx context.Context, usersTrainingsID
 	return nil
 }
 
-func (t trainingService) GetTrainingCovers(ctx context.Context, search string, userID null.Int, cursor int) (dto.TrainingCoverPagination, error) {
+func (t trainingService) GetTrainingCovers(ctx context.Context, search string, cursor int) (dto.TrainingCoverPagination, error) {
 	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
 	defer cancel()
 
-	covers, err := t.trainingRepo.GetTrainingCovers(ctx, search, userID, cursor)
+	covers, err := t.trainingRepo.GetTrainingCovers(ctx, search, cursor)
 	if err != nil {
 		t.logger.Error().Msg(err.Error())
 		return dto.TrainingCoverPagination{}, err
@@ -128,6 +142,36 @@ func (t trainingService) GetTrainingCovers(ctx context.Context, search string, u
 	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Training))
 
 	return t.converter.TrainingCoverPaginationDomainToDTO(covers), nil
+}
+
+func (t trainingService) GetTrainingCoversByUserID(ctx context.Context, search string, userID, cursor int) (dto.TrainingCoverPagination, error) {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	pagination, err := t.trainingRepo.GetTrainingCoversByUserID(ctx, search, userID, cursor)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return dto.TrainingCoverPagination{}, err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Training))
+
+	return t.converter.TrainingCoverPaginationDomainToDTO(pagination), nil
+}
+
+func (t trainingService) GetTrainingCoversByTrainerID(ctx context.Context, search string, trainerID, cursor int) (dto.TrainingCoverTrainerPagination, error) {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	pagination, err := t.trainingRepo.GetTrainingCoversByTrainerID(ctx, search, trainerID, cursor)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return dto.TrainingCoverTrainerPagination{}, err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Training))
+
+	return t.converter.TrainingCoverTrainerPaginationDomainToDTO(pagination), nil
 }
 
 func (t trainingService) GetTraining(ctx context.Context, trainingID int) (dto.Training, error) {
@@ -143,6 +187,21 @@ func (t trainingService) GetTraining(ctx context.Context, trainingID int) (dto.T
 	t.logger.Info().Msg(log.Normalizer(log.GetObject, log.Training, trainingID))
 
 	return t.converter.TrainingDomainToDTO(training), nil
+}
+
+func (t trainingService) GetTrainingTrainer(ctx context.Context, trainingID int) (dto.TrainingTrainer, error) {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	training, err := t.trainingRepo.GetTrainingTrainer(ctx, trainingID)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return dto.TrainingTrainer{}, err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.GetObject, log.Training, trainingID))
+
+	return t.converter.TrainingTrainerDomainToDTO(training), nil
 }
 
 func (t trainingService) GetScheduleTrainings(ctx context.Context, userTrainingIDs []int) ([]dto.UserTraining, error) {

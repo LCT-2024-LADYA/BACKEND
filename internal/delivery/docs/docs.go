@@ -2464,6 +2464,119 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/training/trainer": {
+            "get": {
+                "description": "Get trainer training covers with optional search and trainer ID filter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Get Trainer Training Covers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Cursor for pagination",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return training covers",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TrainingCoverTrainerPagination"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad query or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a training for a trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Create Training Trainer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Training data to create",
+                        "name": "training",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.TrainingCreateTrainer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Training successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CreatedIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad body or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
         "/api/training/user": {
             "get": {
                 "description": "Get user training covers with optional search and user ID filter",
@@ -2671,6 +2784,53 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/training/{training_id}/trainer": {
+            "get": {
+                "description": "Get a training by ID for trainer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Get Training Trainer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Training ID",
+                        "name": "training_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return training",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TrainingTrainer"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid training ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No training with such ID",
                         "schema": {
                             "$ref": "#/definitions/responses.MessageResponse"
                         }
@@ -3787,6 +3947,43 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.TrainingCoverTrainer": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "exercises": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_confirm": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "wants_public": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.TrainingCoverTrainerPagination": {
+            "type": "object",
+            "properties": {
+                "cursor": {
+                    "type": "integer"
+                },
+                "objects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TrainingCoverTrainer"
+                    }
+                }
+            }
+        },
         "dto.TrainingCreate": {
             "type": "object",
             "properties": {
@@ -3818,6 +4015,52 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.TrainingCreateTrainer": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "exercises": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ExerciseStep"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "wants_public": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.TrainingTrainer": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "exercises": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ExerciseBaseStep"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_confirm": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "wants_public": {
+                    "type": "boolean"
                 }
             }
         },

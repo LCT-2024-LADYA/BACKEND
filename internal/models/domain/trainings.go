@@ -53,6 +53,14 @@ type TrainingCreate struct {
 	Exercises   []ExerciseStep
 }
 
+type TrainingCreateTrainer struct {
+	TrainerID   int
+	Name        string
+	Description string
+	WantsPublic bool
+	Exercises   []ExerciseStep
+}
+
 type TrainingCover struct {
 	ID          int
 	Name        string
@@ -67,6 +75,22 @@ type TrainingCoverPagination struct {
 
 type Training struct {
 	TrainingCover
+	Exercises []ExerciseBaseStep
+}
+
+type TrainingCoverTrainer struct {
+	TrainingCover
+	WantsPublic bool
+	IsConfirm   bool
+}
+
+type TrainingCoverTrainerPagination struct {
+	Trainings []TrainingCoverTrainer
+	Cursor    int
+}
+
+type TrainingTrainer struct {
+	TrainingCoverTrainer
 	Exercises []ExerciseBaseStep
 }
 

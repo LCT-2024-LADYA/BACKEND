@@ -78,14 +78,14 @@ func (t trainerRepo) GetByID(ctx context.Context, trainerID int) (domain.Trainer
 	selectQuery := `
 	SELECT email, first_name, last_name, age, sex, experience, quote, photo_url,
 		jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
-		jsonb_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) FILTER (WHERE t.id IS NOT NULL AND t.name IS NOT NULL) AS specializations,
+		jsonb_agg(DISTINCT jsonb_build_object('id', s.id, 'name', s.name)) FILTER (WHERE s.id IS NOT NULL AND s.name IS NOT NULL) AS specializations,
 		jsonb_agg(DISTINCT jsonb_build_object('id', serv.id, 'name', serv.name, 'price', serv.price, 'profile_access', serv.profile_access)) FILTER (WHERE serv.id IS NOT NULL AND serv.name IS NOT NULL) AS services,
 		jsonb_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name, 'is_confirmed', a.is_confirmed)) FILTER (WHERE a.id IS NOT NULL AND a.name IS NOT NULL) AS achievements
 	FROM trainers t
 		LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
 		LEFT JOIN roles r ON tr.role_id = r.id
 		LEFT JOIN trainers_specializations ts ON t.id = ts.trainer_id
-		LEFT JOIN specializations t ON ts.specialization_id = t.id
+		LEFT JOIN specializations s ON ts.specialization_id = s.id
 		LEFT JOIN services serv ON t.id = serv.trainer_id
 		LEFT JOIN achievements a ON t.id = a.trainer_id
 	WHERE t.id = $1 GROUP BY t.id`

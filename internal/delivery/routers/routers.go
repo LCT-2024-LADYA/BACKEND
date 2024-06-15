@@ -67,7 +67,7 @@ func InitRouting(engine *gin.Engine, db *sqlx.DB, middleWarrior *middleware.Midd
 	initRolesRouter(baseGroup, roleHandler, adminMiddleware)
 	initSpecializationsRouter(baseGroup, specializationHandler, adminMiddleware)
 	initUserTrainerServicesRouter(baseGroup, userTrainerServiceHandler, userMiddleware, trainerMiddleware)
-	initTrainingsRouter(baseGroup, trainingHandler, userMiddleware, adminMiddleware)
+	initTrainingsRouter(baseGroup, trainingHandler, userMiddleware, trainerMiddleware, adminMiddleware)
 	initChatRouter(baseGroup, chatHandler, userMiddleware, trainerMiddleware)
 	initServiceRouter(baseGroup, serviceHandler)
 
@@ -152,17 +152,20 @@ func initServiceRouter(group *gin.RouterGroup, serviceHandler *handlers.ServiceH
 	serviceGroup.GET(":id", serviceHandler.GetServiceByID)
 }
 
-func initTrainingsRouter(group *gin.RouterGroup, trainingHandler *handlers.TrainingHandler, userMiddleware gin.HandlerFunc, adminMiddleware gin.HandlerFunc) {
+func initTrainingsRouter(group *gin.RouterGroup, trainingHandler *handlers.TrainingHandler, userMiddleware, trainerMiddleware, adminMiddleware gin.HandlerFunc) {
 	trainingGroup := group.Group("/training")
 
 	trainingGroup.POST("exercise", adminMiddleware, trainingHandler.CreateExercises)
 	trainingGroup.GET("exercise", trainingHandler.GetExercises)
 	trainingGroup.POST("base", adminMiddleware, trainingHandler.CreateTrainingBase)
 	trainingGroup.POST("", userMiddleware, trainingHandler.CreateTraining)
+	trainingGroup.POST("trainer", trainerMiddleware, trainingHandler.CreateTrainingTrainer)
 	trainingGroup.PATCH(":training_id/exercise/:exercise_id/status", userMiddleware, trainingHandler.SetExerciseStatus)
 	trainingGroup.GET("", trainingHandler.GetTrainings)
 	trainingGroup.GET("user", userMiddleware, trainingHandler.GetUserTrainings)
+	trainingGroup.GET("trainer", trainerMiddleware, trainingHandler.GetTrainerTrainings)
 	trainingGroup.GET(":training_id", trainingHandler.GetTraining)
+	trainingGroup.GET(":training_id/trainer", trainingHandler.GetTrainingTrainer)
 	trainingGroup.GET("date", trainingHandler.GetScheduleTrainings)
 	trainingGroup.POST("schedule", userMiddleware, trainingHandler.ScheduleTraining)
 	trainingGroup.GET("schedule", userMiddleware, trainingHandler.GetSchedule)

@@ -6,7 +6,6 @@ import (
 	"BACKEND/pkg/responses"
 	"context"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/guregu/null.v3"
 	"mime/multipart"
 	"time"
 )
@@ -66,9 +65,13 @@ type Trainings interface {
 	GetExercises(ctx context.Context, search string, cursor int) (dto.ExercisePagination, error)
 	CreateTrainingBases(ctx context.Context, trainings []domain.TrainingCreateBase) ([]int, error)
 	CreateTraining(ctx context.Context, training domain.TrainingCreate) (int, error)
+	CreateTrainingTrainer(ctx context.Context, training domain.TrainingCreateTrainer) (int, error)
 	SetExerciseStatus(ctx context.Context, usersTrainingsID, usersExercisesID int, status bool) error
-	GetTrainingCovers(ctx context.Context, search string, userID null.Int, cursor int) (dto.TrainingCoverPagination, error)
+	GetTrainingCovers(ctx context.Context, search string, cursor int) (dto.TrainingCoverPagination, error)
+	GetTrainingCoversByUserID(ctx context.Context, search string, userID, cursor int) (dto.TrainingCoverPagination, error)
+	GetTrainingCoversByTrainerID(ctx context.Context, search string, trainerID, cursor int) (dto.TrainingCoverTrainerPagination, error)
 	GetTraining(ctx context.Context, trainingID int) (dto.Training, error)
+	GetTrainingTrainer(ctx context.Context, trainingID int) (dto.TrainingTrainer, error)
 	GetScheduleTrainings(ctx context.Context, userTrainingIDs []int) ([]dto.UserTraining, error)
 	ScheduleTraining(ctx context.Context, training domain.ScheduleTraining) (int, []int, error)
 	GetSchedule(ctx context.Context, month, userID int) ([]dto.Schedule, error)

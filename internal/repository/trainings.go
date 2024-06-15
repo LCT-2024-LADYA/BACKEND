@@ -5,11 +5,9 @@ import (
 	"BACKEND/internal/models/domain"
 	"BACKEND/pkg/customerr"
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"gopkg.in/guregu/null.v3"
 	"strings"
 )
 
@@ -228,6 +226,55 @@ func (t trainingRepo) CreateTraining(ctx context.Context, training domain.Traini
 	return createdID, nil
 }
 
+func (t trainingRepo) CreateTrainingTrainer(ctx context.Context, training domain.TrainingCreateTrainer) (int, error) {
+	var createdID int
+
+	tx, err := t.db.Beginx()
+	if err != nil {
+		return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.TransactionErr, Err: err})
+	}
+
+	// Insert training
+	query := `INSERT INTO trainings (name, description, trainer_id, wants_public) VALUES ($1, $2, $3, $4) RETURNING id`
+	err = tx.QueryRowContext(ctx, query, training.Name, training.Description, training.TrainerID, training.WantsPublic).Scan(&createdID)
+	if err != nil {
+		tx.Rollback()
+		return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
+	}
+
+	// Insert exercises for the training and get their IDs
+	if len(training.Exercises) > 0 {
+		valueStrings := make([]string, 0, len(training.Exercises))
+		valueArgs := make([]interface{}, 0, len(training.Exercises)*3)
+		for i, exercise := range training.Exercises {
+			valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d)", i*3+1, i*3+2, i*3+3))
+			valueArgs = append(valueArgs, createdID, exercise.ID, exercise.Step)
+		}
+
+		exerciseQuery := fmt.Sprintf("INSERT INTO trainings_exercises (training_id, exercise_id, step) VALUES %s", strings.Join(valueStrings, ","))
+		res, err := tx.ExecContext(ctx, exerciseQuery, valueArgs...)
+		if err != nil {
+			tx.Rollback()
+			return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
+		}
+		count, err := res.RowsAffected()
+		if err != nil {
+			tx.Rollback()
+			return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
+		}
+		if int(count) != len(training.Exercises) {
+			tx.Rollback()
+			return 0, errs.ErrNoExercise
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return 0, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.CommitErr, Err: err})
+	}
+
+	return createdID, nil
+}
+
 func (t trainingRepo) SetExerciseStatus(ctx context.Context, usersTrainingsID, exerciseID int, status bool) error {
 	tx, err := t.db.Beginx()
 	if err != nil {
@@ -258,42 +305,25 @@ func (t trainingRepo) SetExerciseStatus(ctx context.Context, usersTrainingsID, e
 	return nil
 }
 
-func (t trainingRepo) GetTrainingCovers(ctx context.Context, search string, userID null.Int, cursor int) (domain.TrainingCoverPagination, error) {
-	var trainings []domain.TrainingCover
-	var query string
-	var rows *sql.Rows
-	var err error
-
-	// Учитываем пагинацию в запросах
-	if userID.Valid {
-		query = `
-			SELECT t.id, t.name, t.description, COUNT(te.exercise_id) AS exercises
-			FROM trainings t
-			LEFT JOIN trainings_exercises te ON t.id = te.training_id
-			WHERE t.user_id = $1 AND (t.name LIKE '%' || $2 || '%' OR t.description LIKE '%' || $2 || '%') AND t.id >= $3
-			GROUP BY t.id
-			ORDER BY t.id
-			LIMIT $4
-		`
-		rows, err = t.db.QueryContext(ctx, query, userID.Int64, search, cursor, t.entitiesPerRequest+1)
-	} else {
-		query = `
-			SELECT t.id, t.name, t.description, COUNT(te.exercise_id) AS exercises
-			FROM trainings t
-			LEFT JOIN trainings_exercises te ON t.id = te.training_id
-			WHERE t.user_id IS NULL AND (t.name LIKE '%' || $1 || '%' OR t.description LIKE '%' || $1 || '%') AND t.id >= $2
-			GROUP BY t.id
-			ORDER BY t.id
-			LIMIT $3
-		`
-		rows, err = t.db.QueryContext(ctx, query, search, cursor, t.entitiesPerRequest+1)
-	}
-
+func (t trainingRepo) GetTrainingCovers(ctx context.Context, search string, cursor int) (domain.TrainingCoverPagination, error) {
+	query := `
+		SELECT t.id, t.name, t.description, COUNT(te.exercise_id) AS exercises
+		FROM trainings t
+		LEFT JOIN trainings_exercises te ON t.id = te.training_id
+		WHERE t.user_id IS NULL
+			AND (t.name LIKE '%' || $1 || '%' OR t.description LIKE '%' || $1 || '%') AND t.id >= $2
+			AND (t.trainer_id IS NULL OR (t.trainer_id IS NOT NULL AND t.is_confirm = TRUE))
+		GROUP BY t.id
+		ORDER BY t.id
+		LIMIT $3
+	`
+	rows, err := t.db.QueryContext(ctx, query, search, cursor, t.entitiesPerRequest+1)
 	if err != nil {
 		return domain.TrainingCoverPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
 	}
 	defer rows.Close()
 
+	var trainings []domain.TrainingCover
 	for rows.Next() {
 		var cover domain.TrainingCover
 		err := rows.Scan(&cover.ID, &cover.Name, &cover.Description, &cover.Exercises)
@@ -314,6 +344,90 @@ func (t trainingRepo) GetTrainingCovers(ctx context.Context, search string, user
 	}
 
 	return domain.TrainingCoverPagination{
+		Trainings: trainings,
+		Cursor:    nextCursor,
+	}, nil
+}
+
+func (t trainingRepo) GetTrainingCoversByUserID(ctx context.Context, search string, userID, cursor int) (domain.TrainingCoverPagination, error) {
+	query := `
+		SELECT t.id, t.name, t.description, COUNT(te.exercise_id) AS exercises
+		FROM trainings t
+		LEFT JOIN trainings_exercises te ON t.id = te.training_id
+		WHERE t.user_id = $1 AND (t.name LIKE '%' || $2 || '%' OR t.description LIKE '%' || $2 || '%') AND t.id >= $3
+		GROUP BY t.id
+		ORDER BY t.id
+		LIMIT $4
+	`
+	rows, err := t.db.QueryContext(ctx, query, userID, search, cursor, t.entitiesPerRequest+1)
+	if err != nil {
+		return domain.TrainingCoverPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
+	}
+	defer rows.Close()
+
+	var trainings []domain.TrainingCover
+	for rows.Next() {
+		var cover domain.TrainingCover
+		err := rows.Scan(&cover.ID, &cover.Name, &cover.Description, &cover.Exercises)
+		if err != nil {
+			return domain.TrainingCoverPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+		}
+		trainings = append(trainings, cover)
+	}
+
+	if err = rows.Err(); err != nil {
+		return domain.TrainingCoverPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
+	}
+
+	var nextCursor int
+	if len(trainings) == t.entitiesPerRequest+1 {
+		nextCursor = trainings[t.entitiesPerRequest].ID
+		trainings = trainings[:t.entitiesPerRequest]
+	}
+
+	return domain.TrainingCoverPagination{
+		Trainings: trainings,
+		Cursor:    nextCursor,
+	}, nil
+}
+
+func (t trainingRepo) GetTrainingCoversByTrainerID(ctx context.Context, search string, trainerID, cursor int) (domain.TrainingCoverTrainerPagination, error) {
+	query := `
+		SELECT t.id, t.name, t.description, COUNT(te.exercise_id), t.wants_public, t.is_confirm
+		FROM trainings t
+		LEFT JOIN trainings_exercises te ON t.id = te.training_id
+		WHERE t.trainer_id = $1 AND (t.name LIKE '%' || $2 || '%' OR t.description LIKE '%' || $2 || '%') AND t.id >= $3
+		GROUP BY t.id
+		ORDER BY t.id
+		LIMIT $4
+	`
+	rows, err := t.db.QueryContext(ctx, query, trainerID, search, cursor, t.entitiesPerRequest+1)
+	if err != nil {
+		return domain.TrainingCoverTrainerPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
+	}
+	defer rows.Close()
+
+	var trainings []domain.TrainingCoverTrainer
+	for rows.Next() {
+		var cover domain.TrainingCoverTrainer
+		err := rows.Scan(&cover.ID, &cover.Name, &cover.Description, &cover.Exercises, &cover.WantsPublic, &cover.IsConfirm)
+		if err != nil {
+			return domain.TrainingCoverTrainerPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+		}
+		trainings = append(trainings, cover)
+	}
+
+	if err = rows.Err(); err != nil {
+		return domain.TrainingCoverTrainerPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
+	}
+
+	var nextCursor int
+	if len(trainings) == t.entitiesPerRequest+1 {
+		nextCursor = trainings[t.entitiesPerRequest].ID
+		trainings = trainings[:t.entitiesPerRequest]
+	}
+
+	return domain.TrainingCoverTrainerPagination{
 		Trainings: trainings,
 		Cursor:    nextCursor,
 	}, nil
@@ -407,6 +521,48 @@ func (t trainingRepo) GetTraining(ctx context.Context, trainingID int) (domain.T
 
 	if len(training.Exercises) == 0 {
 		return domain.Training{}, errs.ErrNoTraining
+	}
+
+	return training, nil
+}
+
+func (t trainingRepo) GetTrainingTrainer(ctx context.Context, trainingID int) (domain.TrainingTrainer, error) {
+	var training domain.TrainingTrainer
+
+	query := `
+	SELECT t.id, t.name, t.description, t.wants_public, t.is_confirm,
+	       e.id, e.name, e.muscle, e.additional_muscle, e.type, e.equipment, e.difficulty, e.photos, te.step
+	FROM trainings t
+	JOIN trainings_exercises te ON t.id = te.training_id
+	JOIN exercises e ON te.exercise_id = e.id
+	WHERE t.id = $1
+	ORDER BY te.step
+	`
+	rows, err := t.db.QueryContext(ctx, query, trainingID)
+	if err != nil {
+		return domain.TrainingTrainer{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var exercise domain.ExerciseBaseStep
+		err := rows.Scan(&training.ID, &training.Name, &training.Description, &training.WantsPublic, &training.IsConfirm,
+			&exercise.ID, &exercise.Name, &exercise.Muscle, &exercise.AdditionalMuscle, &exercise.Type,
+			&exercise.Equipment, &exercise.Difficulty, pq.Array(&exercise.Photos), &exercise.Step,
+		)
+		if err != nil {
+			return domain.TrainingTrainer{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+		}
+
+		training.Exercises = append(training.Exercises, exercise)
+	}
+
+	if err = rows.Err(); err != nil {
+		return domain.TrainingTrainer{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
+	}
+
+	if len(training.Exercises) == 0 {
+		return domain.TrainingTrainer{}, errs.ErrNoTraining
 	}
 
 	return training, nil

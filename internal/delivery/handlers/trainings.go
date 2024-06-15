@@ -9,7 +9,6 @@ import (
 	"BACKEND/pkg/responses"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/guregu/null.v3"
 	"net/http"
 	"strconv"
 )
@@ -162,6 +161,40 @@ func (t TrainingHandler) CreateTraining(c *gin.Context) {
 	c.JSON(http.StatusCreated, responses.CreatedIDResponse{ID: id})
 }
 
+// CreateTrainingTrainer
+// @Summary Create Training Trainer
+// @Description Create a training for a trainer
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param access_token header string true "Access token"
+// @Param training body dto.TrainingCreateTrainer true "Training data to create"
+// @Success 201 {object} responses.CreatedIDResponse "Training successfully created"
+// @Failure 400 {object} responses.MessageResponse "Bad body or JWT provided"
+// @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
+// @Failure 500 "Internal server error"
+// @Router /api/training/trainer [post]
+func (t TrainingHandler) CreateTrainingTrainer(c *gin.Context) {
+	var training dto.TrainingCreateTrainer
+
+	if err := c.ShouldBindJSON(&training); err != nil {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadBody})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	trainerID := c.GetInt(middleware.UserID)
+
+	id, err := t.service.CreateTrainingTrainer(ctx, t.converter.TrainingCreateTrainerDTOToDomain(training, trainerID))
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusCreated, responses.CreatedIDResponse{ID: id})
+}
+
 // SetExerciseStatus
 // @Summary Set Exercise Status
 // @Description Set the status of an exercise in a training
@@ -240,7 +273,7 @@ func (t TrainingHandler) GetTrainings(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	covers, err := t.service.GetTrainingCovers(ctx, search, null.NewInt(0, false), cursor)
+	covers, err := t.service.GetTrainingCovers(ctx, search, cursor)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
@@ -279,7 +312,46 @@ func (t TrainingHandler) GetUserTrainings(c *gin.Context) {
 
 	userID := c.GetInt(middleware.UserID)
 
-	covers, err := t.service.GetTrainingCovers(ctx, search, null.NewInt(int64(userID), true), cursor)
+	covers, err := t.service.GetTrainingCoversByUserID(ctx, search, userID, cursor)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, covers)
+}
+
+// GetTrainerTrainings
+// @Summary Get Trainer Training Covers
+// @Description Get trainer training covers with optional search and trainer ID filter
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param access_token header string true "Access token"
+// @Param search query string false "Search term"
+// @Param cursor query int false "Cursor for pagination"
+// @Success 200 {object} dto.TrainingCoverTrainerPagination "Return training covers"
+// @Failure 400 {object} responses.MessageResponse "Bad query or JWT provided"
+// @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
+// @Failure 500 "Internal server error"
+// @Router /api/training/trainer [get]
+func (t TrainingHandler) GetTrainerTrainings(c *gin.Context) {
+	search := c.Query("search")
+	cursorStr := c.Query("cursor")
+	if cursorStr == "" {
+		cursorStr = "0"
+	}
+	cursor, err := strconv.Atoi(cursorStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadQuery})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	trainerID := c.GetInt(middleware.UserID)
+
+	covers, err := t.service.GetTrainingCoversByTrainerID(ctx, search, trainerID, cursor)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
@@ -311,6 +383,42 @@ func (t TrainingHandler) GetTraining(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	training, err := t.service.GetTraining(ctx, trainingID)
+	if err != nil {
+		switch {
+		case errors.Is(err, errs.ErrNoTraining):
+			c.JSON(http.StatusNotFound, responses.MessageResponse{Message: err.Error()})
+		default:
+			c.Status(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, training)
+}
+
+// GetTrainingTrainer
+// @Summary Get Training Trainer
+// @Description Get a training by ID for trainer
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param training_id path int true "Training ID"
+// @Success 200 {object} dto.TrainingTrainer "Return training"
+// @Failure 400 {object} responses.MessageResponse "Invalid training ID"
+// @Failure 404 {object} responses.MessageResponse "No training with such ID"
+// @Failure 500 "Internal server error"
+// @Router /api/training/{training_id}/trainer [get]
+func (t TrainingHandler) GetTrainingTrainer(c *gin.Context) {
+	trainingIDStr := c.Param("training_id")
+	trainingID, err := strconv.Atoi(trainingIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadPath})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	training, err := t.service.GetTrainingTrainer(ctx, trainingID)
 	if err != nil {
 		switch {
 		case errors.Is(err, errs.ErrNoTraining):

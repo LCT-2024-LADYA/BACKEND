@@ -52,6 +52,13 @@ type TrainingCreate struct {
 	Exercises   []ExerciseStep `json:"exercises"`
 }
 
+type TrainingCreateTrainer struct {
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	WantsPublic bool           `json:"wants_public"`
+	Exercises   []ExerciseStep `json:"exercises"`
+}
+
 type TrainingCover struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
@@ -66,6 +73,22 @@ type TrainingCoverPagination struct {
 
 type Training struct {
 	TrainingCover
+	Exercises []ExerciseBaseStep `json:"exercises"`
+}
+
+type TrainingCoverTrainer struct {
+	TrainingCover
+	WantsPublic bool `json:"wants_public"`
+	IsConfirm   bool `json:"is_confirm"`
+}
+
+type TrainingCoverTrainerPagination struct {
+	Trainings []TrainingCoverTrainer `json:"objects"`
+	Cursor    int                    `json:"cursor"`
+}
+
+type TrainingTrainer struct {
+	TrainingCoverTrainer
 	Exercises []ExerciseBaseStep `json:"exercises"`
 }
 

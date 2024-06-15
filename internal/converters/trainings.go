@@ -16,8 +16,12 @@ type TrainingConverter interface {
 	ExercisePaginationDomainToDTO(exercise domain.ExercisePagination) dto.ExercisePagination
 	TrainingCoverDomainToDTO(trainer domain.TrainingCover) dto.TrainingCover
 	TrainingCoversDomainToDTO(trainings []domain.TrainingCover) []dto.TrainingCover
+	TrainingCoverTrainerDomainToDTO(training domain.TrainingCoverTrainer) dto.TrainingCoverTrainer
+	TrainingCoversTrainerDomainToDTO(trainings []domain.TrainingCoverTrainer) []dto.TrainingCoverTrainer
 	TrainingCoverPaginationDomainToDTO(exercise domain.TrainingCoverPagination) dto.TrainingCoverPagination
+	TrainingCoverTrainerPaginationDomainToDTO(exercise domain.TrainingCoverTrainerPagination) dto.TrainingCoverTrainerPagination
 	TrainingDomainToDTO(training domain.Training) dto.Training
+	TrainingTrainerDomainToDTO(training domain.TrainingTrainer) dto.TrainingTrainer
 	TrainingDateDomainToDTO(training domain.UserTraining) dto.UserTraining
 	TrainingsDateDomainToDTO(trainings []domain.UserTraining) []dto.UserTraining
 	ScheduleDomainToDTO(schedule domain.Schedule) dto.Schedule
@@ -28,6 +32,7 @@ type TrainingConverter interface {
 	TrainingCreateBaseDTOToDomain(training dto.TrainingCreateBase) domain.TrainingCreateBase
 	TrainingCreateBasesDTOToDomain(trainings []dto.TrainingCreateBase) []domain.TrainingCreateBase
 	TrainingCreateDTOToDomain(training dto.TrainingCreate, userID int) domain.TrainingCreate
+	TrainingCreateTrainerDTOToDomain(training dto.TrainingCreateTrainer, trainerID int) domain.TrainingCreateTrainer
 	ScheduleTrainingDTOToDomain(training dto.ScheduleTraining, userID int) domain.ScheduleTraining
 	ExerciseStepDTOToDomain(exercise dto.ExerciseStep) domain.ExerciseStep
 	ExerciseStepsBasesDTOToDomain(exercises []dto.ExerciseStep) []domain.ExerciseStep
@@ -133,9 +138,34 @@ func (t trainingConverter) TrainingCoversDomainToDTO(trainings []domain.Training
 	return result
 }
 
+func (t trainingConverter) TrainingCoverTrainerDomainToDTO(training domain.TrainingCoverTrainer) dto.TrainingCoverTrainer {
+	return dto.TrainingCoverTrainer{
+		TrainingCover: t.TrainingCoverDomainToDTO(training.TrainingCover),
+		WantsPublic:   training.WantsPublic,
+		IsConfirm:     training.IsConfirm,
+	}
+}
+
+func (t trainingConverter) TrainingCoversTrainerDomainToDTO(trainings []domain.TrainingCoverTrainer) []dto.TrainingCoverTrainer {
+	result := make([]dto.TrainingCoverTrainer, len(trainings))
+
+	for i, training := range trainings {
+		result[i] = t.TrainingCoverTrainerDomainToDTO(training)
+	}
+
+	return result
+}
+
 func (t trainingConverter) TrainingCoverPaginationDomainToDTO(exercise domain.TrainingCoverPagination) dto.TrainingCoverPagination {
 	return dto.TrainingCoverPagination{
 		Trainings: t.TrainingCoversDomainToDTO(exercise.Trainings),
+		Cursor:    exercise.Cursor,
+	}
+}
+
+func (t trainingConverter) TrainingCoverTrainerPaginationDomainToDTO(exercise domain.TrainingCoverTrainerPagination) dto.TrainingCoverTrainerPagination {
+	return dto.TrainingCoverTrainerPagination{
+		Trainings: t.TrainingCoversTrainerDomainToDTO(exercise.Trainings),
 		Cursor:    exercise.Cursor,
 	}
 }
@@ -144,6 +174,13 @@ func (t trainingConverter) TrainingDomainToDTO(training domain.Training) dto.Tra
 	return dto.Training{
 		TrainingCover: t.TrainingCoverDomainToDTO(training.TrainingCover),
 		Exercises:     t.ExercisesBaseStepDomainToDTO(training.Exercises),
+	}
+}
+
+func (t trainingConverter) TrainingTrainerDomainToDTO(training domain.TrainingTrainer) dto.TrainingTrainer {
+	return dto.TrainingTrainer{
+		TrainingCoverTrainer: t.TrainingCoverTrainerDomainToDTO(training.TrainingCoverTrainer),
+		Exercises:            t.ExercisesBaseStepDomainToDTO(training.Exercises),
 	}
 }
 
@@ -241,6 +278,16 @@ func (t trainingConverter) ExerciseStepsBasesDTOToDomain(exercises []dto.Exercis
 	}
 
 	return result
+}
+
+func (t trainingConverter) TrainingCreateTrainerDTOToDomain(training dto.TrainingCreateTrainer, trainerID int) domain.TrainingCreateTrainer {
+	return domain.TrainingCreateTrainer{
+		TrainerID:   trainerID,
+		Name:        training.Name,
+		Description: training.Description,
+		WantsPublic: training.WantsPublic,
+		Exercises:   t.ExerciseStepsBasesDTOToDomain(training.Exercises),
+	}
 }
 
 func (t trainingConverter) TrainingCreateDTOToDomain(training dto.TrainingCreate, userID int) domain.TrainingCreate {
