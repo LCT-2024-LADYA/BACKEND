@@ -248,6 +248,35 @@ definitions:
           type: integer
         type: array
     type: object
+  dto.Progress:
+    properties:
+      name:
+        type: string
+      progresses:
+        items:
+          $ref: '#/definitions/dto.ProgressDay'
+        type: array
+    type: object
+  dto.ProgressDay:
+    properties:
+      date:
+        type: string
+      reps:
+        type: integer
+      sets:
+        type: integer
+      weight:
+        type: integer
+    type: object
+  dto.ProgressPagination:
+    properties:
+      is_more:
+        type: boolean
+      objects:
+        items:
+          $ref: '#/definitions/dto.Progress'
+        type: array
+    type: object
   dto.ScheduleService:
     properties:
       date:
@@ -2679,6 +2708,55 @@ paths:
         "500":
           description: Internal server error
       summary: Create Plan Trainer
+      tags:
+      - Trainings
+  /api/training/progress:
+    get:
+      consumes:
+      - application/json
+      description: Get progress with pagination
+      parameters:
+      - description: Access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Start date
+        in: query
+        name: date_start
+        required: true
+        type: string
+      - description: End date
+        in: query
+        name: date_end
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of progress with pagination
+          schema:
+            $ref: '#/definitions/dto.ProgressPagination'
+        "400":
+          description: Bad query or JWT provided
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "401":
+          description: JWT is expired or invalid
+          schema:
+            $ref: '#/definitions/responses.MessageResponse'
+        "500":
+          description: Internal server error
+      summary: Get Progress
       tags:
       - Trainings
   /api/training/schedule:

@@ -81,6 +81,7 @@ type Trainings interface {
 	GetPlanCoversByUserID(ctx context.Context, userID int) ([]dto.PlanCover, error)
 	GetPlan(ctx context.Context, planID int) (dto.Plan, error)
 	DeletePlan(ctx context.Context, planID int) error
+	GetProgress(ctx context.Context, filters domain.FiltersProgress) (dto.ProgressPagination, error)
 }
 
 type Chat interface {

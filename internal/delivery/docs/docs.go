@@ -2552,6 +2552,79 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/training/progress": {
+            "get": {
+                "description": "Get progress with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trainings"
+                ],
+                "summary": "Get Progress",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start date",
+                        "name": "date_start",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date",
+                        "name": "date_end",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of progress with pagination",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProgressPagination"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad query or JWT provided",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "JWT is expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
         "/api/training/schedule": {
             "get": {
                 "description": "Get schedule for the specified month",
@@ -3700,6 +3773,51 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "integer"
+                    }
+                }
+            }
+        },
+        "dto.Progress": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "progresses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ProgressDay"
+                    }
+                }
+            }
+        },
+        "dto.ProgressDay": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "reps": {
+                    "type": "integer"
+                },
+                "sets": {
+                    "type": "integer"
+                },
+                "weight": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ProgressPagination": {
+            "type": "object",
+            "properties": {
+                "is_more": {
+                    "type": "boolean"
+                },
+                "objects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Progress"
                     }
                 }
             }

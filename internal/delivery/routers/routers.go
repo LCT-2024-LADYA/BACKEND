@@ -177,6 +177,8 @@ func initTrainingsRouter(group *gin.RouterGroup, trainingHandler *handlers.Train
 	trainingGroup.GET("plan/user", userMiddleware, trainingHandler.GetPlanCoversByUserID)
 	trainingGroup.GET("plan/:plan_id", trainingHandler.GetPlan)
 	trainingGroup.DELETE("plan/:plan_id", trainingHandler.DeletePlan)
+
+	trainingGroup.GET("progress", userMiddleware, trainingHandler.GetProgress)
 }
 
 func initChatRouter(group *gin.RouterGroup, chatHandler *handlers.ChatHandler, userMiddleware gin.HandlerFunc, trainerMiddleware gin.HandlerFunc) {

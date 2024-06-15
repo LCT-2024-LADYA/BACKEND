@@ -14,16 +14,18 @@ import (
 )
 
 type TrainingHandler struct {
-	service   services.Trainings
-	converter converters.TrainingConverter
+	service         services.Trainings
+	converter       converters.TrainingConverter
+	filterConverter converters.FilterConverter
 }
 
 func InitTrainingsHandler(
 	service services.Trainings,
 ) *TrainingHandler {
 	return &TrainingHandler{
-		service:   service,
-		converter: converters.InitTrainingConverter(),
+		service:         service,
+		converter:       converters.InitTrainingConverter(),
+		filterConverter: converters.InitFilterConverter(),
 	}
 }
 
@@ -768,4 +770,43 @@ func (t TrainingHandler) DeletePlan(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+// GetProgress
+// @Summary Get Progress
+// @Description Get progress with pagination
+// @Tags Trainings
+// @Accept json
+// @Produce json
+// @Param access_token header string true "Access token"
+// @Param search query string false "Search term"
+// @Param date_start query string true "Start date"
+// @Param date_end query string true "End date"
+// @Param page query int false "Page number"
+// @Success 200 {object} dto.ProgressPagination "List of progress with pagination"
+// @Failure 400 {object} responses.MessageResponse "Bad query or JWT provided"
+// @Failure 401 {object} responses.MessageResponse "JWT is expired or invalid"
+// @Failure 500 "Internal server error"
+// @Router /api/training/progress [get]
+func (t TrainingHandler) GetProgress(c *gin.Context) {
+	var filters dto.FiltersProgress
+
+	if err := c.ShouldBindQuery(&filters); err != nil {
+		c.JSON(http.StatusBadRequest, responses.MessageResponse{Message: responses.ResponseBadQuery})
+		return
+	}
+
+	if filters.Page == 0 {
+		filters.Page = 1
+	}
+
+	userID := c.GetInt(middleware.UserID)
+
+	progressPagination, err := t.service.GetProgress(c.Request.Context(), t.filterConverter.FiltersProgressDTOToDomain(filters, userID))
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, progressPagination)
 }

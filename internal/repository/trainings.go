@@ -5,10 +5,12 @@ import (
 	"BACKEND/internal/models/domain"
 	"BACKEND/pkg/customerr"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"strings"
+	"time"
 )
 
 type trainingRepo struct {
@@ -802,4 +804,78 @@ func (t trainingRepo) DeletePlan(ctx context.Context, planID int) error {
 		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ExecErr, Err: err})
 	}
 	return nil
+}
+
+func (t trainingRepo) GetProgress(ctx context.Context, filters domain.FiltersProgress) (domain.ProgressPagination, error) {
+	query := `
+	SELECT name, data
+	FROM (
+	    SELECT
+	        e.id, e.name,
+	        json_agg(json_build_object('date', ut.date, 'weight', ute.weight, 'reps', ute.reps, 'sets', ute.sets)) AS data,
+	        COUNT(*) AS array_length
+	    FROM exercises e
+	        JOIN user_trainings_exercises ute ON e.id = ute.exercise_id
+	        JOIN users_trainings ut ON ute.users_trainings_id = ut.id
+	    WHERE ut.user_id = $1 AND ut.date BETWEEN $2 AND $3
+	    	AND e.name LIKE '%' || $4 || '%'
+	    GROUP BY e.id, e.name
+	 ) subquery
+	ORDER BY array_length DESC, name
+	OFFSET $5
+	LIMIT $6
+	`
+
+	rows, err := t.db.QueryContext(ctx, query, filters.UserID, filters.DateStart, filters.DateEnd, filters.Search, 10*(filters.Page-1), 11)
+	if err != nil {
+		return domain.ProgressPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.QueryErr, Err: err})
+	}
+	defer rows.Close()
+
+	var progresses []domain.Progress
+	for rows.Next() {
+		var progress domain.Progress
+		var progressStr []domain.ProgressDayString
+		var data []byte
+
+		err = rows.Scan(&progress.Name, &data)
+		if err != nil {
+			return domain.ProgressPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.ScanErr, Err: err})
+		}
+
+		err = json.Unmarshal(data, &progressStr)
+		if err != nil {
+			return domain.ProgressPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.JsonErr, Err: err})
+		}
+
+		for _, tempProgress := range progressStr {
+			date, err := time.Parse("2006-01-02", tempProgress.Date)
+			if err != nil {
+				return domain.ProgressPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.JsonErr, Err: err})
+			}
+			progress.Progresses = append(progress.Progresses, domain.ProgressDay{
+				Sets:   tempProgress.Sets,
+				Reps:   tempProgress.Reps,
+				Weight: tempProgress.Weight,
+				Date:   date,
+			})
+		}
+
+		progresses = append(progresses, progress)
+	}
+
+	if err = rows.Err(); err != nil {
+		return domain.ProgressPagination{}, customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.RowsErr, Err: err})
+	}
+
+	var isMore bool
+	if len(progresses) == 11 {
+		isMore = true
+		progresses = progresses[:10]
+	}
+
+	return domain.ProgressPagination{
+		Progresses: progresses,
+		IsMore:     isMore,
+	}, nil
 }

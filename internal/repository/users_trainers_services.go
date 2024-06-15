@@ -48,7 +48,7 @@ func (s usersTrainersServicesRepo) Create(ctx context.Context, service domain.Us
 func (s usersTrainersServicesRepo) Schedule(ctx context.Context, schedule domain.ScheduleService) (int, error) {
 	var createdID int
 
-	createQuery := `INSERT INTO trainer_users_trainers_services (users_trainers_services_id, date, time_start, time_end) VALUES ($1, $2, $3, $4) RETURNING id`
+	createQuery := `INSERT INTO users_trainers_services_schedule (users_trainers_services_id, date, time_start, time_end) VALUES ($1, $2, $3, $4) RETURNING id`
 
 	err := s.db.QueryRowContext(ctx, createQuery, schedule.ScheduleID, schedule.Date, schedule.TimeStart, schedule.TimeEnd).Scan(&createdID)
 	if err != nil {
@@ -63,7 +63,7 @@ func (s usersTrainersServicesRepo) GetSchedule(ctx context.Context, month, train
 
 	query := `
 		SELECT date, array_agg(tuts.id) AS training_ids
-		FROM trainer_users_trainers_services tuts
+		FROM users_trainers_services_schedule tuts
 		JOIN users_trainers_services uts ON tuts.users_trainers_services_id = uts.id
 		WHERE EXTRACT(MONTH FROM date) = $1 AND uts.trainer_id = $2
 		GROUP BY date
@@ -100,7 +100,7 @@ func (s usersTrainersServicesRepo) GetSchedule(ctx context.Context, month, train
 }
 
 func (s usersTrainersServicesRepo) DeleteScheduled(ctx context.Context, scheduleID int) error {
-	query := `DELETE FROM trainer_users_trainers_services WHERE id = $1`
+	query := `DELETE FROM users_trainers_services_schedule WHERE id = $1`
 
 	_, err := s.db.ExecContext(ctx, query, scheduleID)
 	if err != nil {
@@ -161,7 +161,7 @@ func (s usersTrainersServicesRepo) GetSchedulesByIDs(ctx context.Context, schedu
 	SELECT uts.id, uts.user_id, uts.trainer_id, uts.service_id, uts.is_payed, uts.trainer_confirm, uts.user_confirm,
 	       s.id, s.name, s.price, s.profile_access, u.id, u.first_name, u.last_name, u.age, u.sex, u.photo_url,
 	       tuts.id, tuts.date, tuts.time_start, tuts.time_end
-	FROM trainer_users_trainers_services tuts
+	FROM users_trainers_services_schedule tuts
 		JOIN users_trainers_services uts ON tuts.users_trainers_services_id = uts.id
 		JOIN users u ON uts.user_id = u.id
 		JOIN services s ON uts.service_id = s.id

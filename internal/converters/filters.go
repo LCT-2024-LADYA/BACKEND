@@ -7,6 +7,7 @@ import (
 
 type FilterConverter interface {
 	FilterTrainerDTOToDomain(filter dto.FiltersTrainerCovers) domain.FiltersTrainerCovers
+	FiltersProgressDTOToDomain(filter dto.FiltersProgress, userID int) domain.FiltersProgress
 }
 
 type filterConverter struct {
@@ -22,5 +23,15 @@ func (f filterConverter) FilterTrainerDTOToDomain(filter dto.FiltersTrainerCover
 		Cursor:            filter.Cursor,
 		RoleIDs:           filter.RoleIDs,
 		SpecializationIDs: filter.SpecializationIDs,
+	}
+}
+
+func (f filterConverter) FiltersProgressDTOToDomain(filter dto.FiltersProgress, userID int) domain.FiltersProgress {
+	return domain.FiltersProgress{
+		UserID:    userID,
+		Search:    filter.Search,
+		DateStart: filter.DateStart,
+		DateEnd:   filter.DateEnd,
+		Page:      filter.Page,
 	}
 }

@@ -31,6 +31,11 @@ type TrainingConverter interface {
 	PlanCoverDomainToDTO(plan domain.PlanCover) dto.PlanCover
 	PlanCoversDomainToDTO(plans []domain.PlanCover) []dto.PlanCover
 	PlanDomainToDTO(plan domain.Plan) dto.Plan
+	ProgressDayDomainToDTO(progress domain.ProgressDay) dto.ProgressDay
+	ProgressDaysDomainToDTO(progresses []domain.ProgressDay) []dto.ProgressDay
+	ProgressDomainToDTO(progress domain.Progress) dto.Progress
+	ProgressesDomainToDTO(progresses []domain.Progress) []dto.Progress
+	ProgressPaginationDomainToDTO(progress domain.ProgressPagination) dto.ProgressPagination
 
 	ExerciseCreateBaseDTOToDomain(exercise dto.ExerciseCreateBase) domain.ExerciseCreateBase
 	ExercisesCreateBaseDTOToDomain(exercises []dto.ExerciseCreateBase) []domain.ExerciseCreateBase
@@ -270,6 +275,49 @@ func (t trainingConverter) PlanDomainToDTO(plan domain.Plan) dto.Plan {
 	return dto.Plan{
 		PlanCover: t.PlanCoverDomainToDTO(plan.PlanCover),
 		Trainings: t.TrainingCoversDomainToDTO(plan.Trainings),
+	}
+}
+
+func (t trainingConverter) ProgressDayDomainToDTO(progress domain.ProgressDay) dto.ProgressDay {
+	return dto.ProgressDay{
+		Sets:   progress.Sets,
+		Reps:   progress.Reps,
+		Weight: progress.Weight,
+		Date:   progress.Date,
+	}
+}
+
+func (t trainingConverter) ProgressDaysDomainToDTO(progresses []domain.ProgressDay) []dto.ProgressDay {
+	result := make([]dto.ProgressDay, len(progresses))
+
+	for i, progress := range progresses {
+		result[i] = t.ProgressDayDomainToDTO(progress)
+	}
+
+	return result
+}
+
+func (t trainingConverter) ProgressDomainToDTO(progress domain.Progress) dto.Progress {
+	return dto.Progress{
+		Name:       progress.Name,
+		Progresses: t.ProgressDaysDomainToDTO(progress.Progresses),
+	}
+}
+
+func (t trainingConverter) ProgressesDomainToDTO(progresses []domain.Progress) []dto.Progress {
+	result := make([]dto.Progress, len(progresses))
+
+	for i, progress := range progresses {
+		result[i] = t.ProgressDomainToDTO(progress)
+	}
+
+	return result
+}
+
+func (t trainingConverter) ProgressPaginationDomainToDTO(progress domain.ProgressPagination) dto.ProgressPagination {
+	return dto.ProgressPagination{
+		Progresses: t.ProgressesDomainToDTO(progress.Progresses),
+		IsMore:     progress.IsMore,
 	}
 }
 

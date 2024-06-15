@@ -16,7 +16,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./data/app:/app/cmd/log
-      - ./data/app/static:/app/static
+      - ./static:/app/static
 
   postgres:
     image: postgres:15

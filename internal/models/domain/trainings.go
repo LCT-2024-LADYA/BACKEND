@@ -147,3 +147,27 @@ type SchedulePlan struct {
 	DateStart time.Time
 	DateEnd   time.Time
 }
+
+type ProgressDayString struct {
+	Sets   int    `json:"sets"`
+	Reps   int    `json:"reps"`
+	Weight int    `json:"weight"`
+	Date   string `json:"date"`
+}
+
+type ProgressDay struct {
+	Sets   int
+	Reps   int
+	Weight int
+	Date   time.Time
+}
+
+type Progress struct {
+	Name       string
+	Progresses []ProgressDay
+}
+
+type ProgressPagination struct {
+	Progresses []Progress
+	IsMore     bool
+}

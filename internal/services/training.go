@@ -338,3 +338,18 @@ func (t trainingService) DeletePlan(ctx context.Context, planID int) error {
 
 	return nil
 }
+
+func (t trainingService) GetProgress(ctx context.Context, filters domain.FiltersProgress) (dto.ProgressPagination, error) {
+	ctx, cancel := context.WithTimeout(ctx, t.dbResponseTime)
+	defer cancel()
+
+	progress, err := t.trainingRepo.GetProgress(ctx, filters)
+	if err != nil {
+		t.logger.Error().Msg(err.Error())
+		return dto.ProgressPagination{}, err
+	}
+
+	t.logger.Info().Msg(log.Normalizer(log.GetObjects, log.Schedule))
+
+	return t.converter.ProgressPaginationDomainToDTO(progress), nil
+}
