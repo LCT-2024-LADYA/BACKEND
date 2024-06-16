@@ -17,6 +17,10 @@
 
 ## START
 
+### Загрузка фото
+
+Перенесите фотографии тренировок с Яндекс Диска (`data/photos`) в папку `/static/img/exercises`
+
 ### Запуск проект
 Запустите проект (из корня клонированного репозитория):
 ```bash
@@ -29,10 +33,6 @@ docker compose up --build
 Откройте swagger (http://localhost:8080/swagger/index.html) и откройте описание ручки `Admin Authorization` (1 в списке).
 В параметр `X-API-KEY` передайте `API_KEY` из файла `.env`. Полученный `access_token` необходимо вставить в параметры ручек `Create Exercises` (POST http://localhost:8080/api/training/exercise),
 `Create Training Base` (POST http://localhost:8080/api/training/base) для загрузки в базу упражнений и базовых тренировок. Данные для вставки body лежат в папке `data/exercises.json` и `data/trainings.json` на переданном вам Яндекс Диске.
-
-### Загрузка фото
-
-Перенесите фотографии тренировок с Яндекс Диска (`data/photos`) в папку `/static/img/exercises`
 
 ### Регистрация тренера
 
