@@ -3,7 +3,6 @@ package converters
 import (
 	"BACKEND/internal/models/domain"
 	"BACKEND/internal/models/dto"
-	"fmt"
 	"time"
 )
 
@@ -92,8 +91,6 @@ func (c chatConverter) MessageGetToMessageCreate(message domain.MessageGet, isTr
 		messageCreate.UserID = userID
 		messageCreate.TrainerID = message.To
 	}
-
-	fmt.Println(messageCreate)
 
 	return messageCreate
 }

@@ -4,7 +4,6 @@ import (
 	"BACKEND/internal/models/domain"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 )
 
@@ -87,9 +86,7 @@ func (u *User) write() {
 
 					// Создание записи в БД
 					messageCreate := u.server.converter.MessageGetToMessageCreate(messageGet, u.isTrainer, u.id)
-					fmt.Println(u.id)
 
-					fmt.Println(messageCreate)
 					createdID, time, err := u.server.service.CreateMessage(context.Background(), messageCreate)
 					if err != nil {
 						u.server.err(err)
