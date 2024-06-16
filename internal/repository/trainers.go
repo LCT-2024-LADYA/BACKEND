@@ -313,7 +313,7 @@ func (t trainerRepo) UpdateRoles(ctx context.Context, trainerID int, roleIDs []i
 			valueArgs = append(valueArgs, id)
 		}
 
-		addQuery := fmt.Sprintf("INSERT INTO trainers_roles (trainer_id, role_id) VALUES %t", strings.Join(valueStrings, ","))
+		addQuery := fmt.Sprintf("INSERT INTO trainers_roles (trainer_id, role_id) VALUES %s", strings.Join(valueStrings, ","))
 		res, err := tx.ExecContext(ctx, addQuery, valueArgs...)
 		if err != nil {
 			if rbErr := tx.Rollback(); rbErr != nil {
@@ -388,7 +388,7 @@ func (t trainerRepo) UpdateSpecializations(ctx context.Context, trainerID int, s
 			valueArgs = append(valueArgs, id)
 		}
 
-		addQuery := fmt.Sprintf("INSERT INTO trainers_specializations (trainer_id, specialization_id) VALUES %t", strings.Join(valueStrings, ","))
+		addQuery := fmt.Sprintf("INSERT INTO trainers_specializations (trainer_id, specialization_id) VALUES %s", strings.Join(valueStrings, ","))
 		res, err := tx.ExecContext(ctx, addQuery, valueArgs...)
 		if err != nil {
 			if rbErr := tx.Rollback(); rbErr != nil {
@@ -880,7 +880,7 @@ func (t trainerRepo) UpdateStatus(ctx context.Context, field string, serviceID i
 		return customerr.ErrNormalizer(customerr.ErrorPair{Message: customerr.TransactionErr, Err: err})
 	}
 
-	updateQuery := fmt.Sprintf("UPDATE users_trainers_services SET %t = $1 WHERE id = $2", field)
+	updateQuery := fmt.Sprintf("UPDATE users_trainers_services SET %s = $1 WHERE id = $2", field)
 
 	res, err := tx.ExecContext(ctx, updateQuery, status, serviceID)
 	if err != nil {
