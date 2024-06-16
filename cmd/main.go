@@ -38,7 +38,7 @@ func main() {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	logger.Info().Msg("Swagger Initialized")
 
-	if err := router.Run("0.0.0.0:80"); err != nil {
+	if err := router.Run("0.0.0.0:8080"); err != nil {
 		panic(fmt.Sprintf("Failed to run client: %s", err.Error()))
 	}
 }

@@ -812,18 +812,21 @@ func (t trainingRepo) GetProgress(ctx context.Context, filters domain.FiltersPro
 	FROM (
 	    SELECT
 	        e.id, e.name,
-	        json_agg(json_build_object('date', ut.date, 'weight', ute.weight, 'reps', ute.reps, 'sets', ute.sets)) AS data,
+	        json_agg(json_build_object('date', sub.date, 'weight', sub.weight, 'reps', sub.reps, 'sets', sub.sets) ORDER BY sub.date) AS data,
 	        COUNT(*) AS array_length
 	    FROM exercises e
-	        JOIN user_trainings_exercises ute ON e.id = ute.exercise_id
-	        JOIN users_trainings ut ON ute.users_trainings_id = ut.id
-	    WHERE ut.user_id = $1 AND ut.date BETWEEN $2 AND $3
-	    	AND e.name LIKE '%' || $4 || '%'
+	    JOIN (
+	        SELECT ute.exercise_id, ut.date, ute.weight, ute.reps, ute.sets
+	        FROM user_trainings_exercises ute
+	             JOIN users_trainings ut ON ute.users_trainings_id = ut.id
+	        WHERE ut.user_id = $1 AND ut.date BETWEEN $2 AND $3
+	        ORDER BY ut.date
+	    ) sub ON e.id = sub.exercise_id
+	    WHERE e.name LIKE '%' || $4 || '%'
 	    GROUP BY e.id, e.name
-	 ) subquery
+	) subquery
 	ORDER BY array_length DESC, name
-	OFFSET $5
-	LIMIT $6
+	OFFSET $5 LIMIT $6
 	`
 
 	rows, err := t.db.QueryContext(ctx, query, filters.UserID, filters.DateStart, filters.DateEnd, filters.Search, 10*(filters.Page-1), 11)

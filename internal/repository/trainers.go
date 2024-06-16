@@ -129,12 +129,12 @@ func (t trainerRepo) GetCovers(ctx context.Context, filters domain.FiltersTraine
 	selectQuery := `
 	SELECT t.id, t.first_name, t.last_name, t.age, t.sex, t.experience, t.quote, t.photo_url,
 		jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name)) FILTER (WHERE r.id IS NOT NULL AND r.name IS NOT NULL) AS roles,
-		jsonb_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) FILTER (WHERE t.id IS NOT NULL AND t.name IS NOT NULL) AS specializations
+		jsonb_agg(DISTINCT jsonb_build_object('id', s.id, 'name', s.name)) FILTER (WHERE s.id IS NOT NULL AND s.name IS NOT NULL) AS specializations
 	FROM trainers t
 	LEFT JOIN trainers_roles tr ON t.id = tr.trainer_id
 	LEFT JOIN roles r ON tr.role_id = r.id
 	LEFT JOIN trainers_specializations ts ON t.id = ts.trainer_id
-	LEFT JOIN specializations t ON ts.specialization_id = t.id
+	LEFT JOIN specializations s ON ts.specialization_id = t.id
 	WHERE t.id IN (
 		SELECT t.id
 		FROM trainers t
